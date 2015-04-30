@@ -91,6 +91,8 @@ class ExtensionManager(Singleton, osquery.extensions.Extension.Iface):
     _plugins = {}
     _registry = {}
 
+    uuid = None
+
     def add_plugin(self, plugin):
         """Register a plugin with the extension manager. In order for the
         extension manager to broadcast a plugin, it must be added using this
@@ -236,6 +238,7 @@ def start_extension(name="", version="", sdk_version="", min_sdk_version=""):
 
     # start a thrift server listening at the path dictated by the uuid returned
     # by the osquery core extension manager
+    em.uuid = status.uuid
     processor = osquery.extensions.Extension.Processor(em)
     transport = transport = TSocket.TServerSocket(
         unix_socket=args.socket + "." + str(status.uuid))
@@ -243,6 +246,35 @@ def start_extension(name="", version="", sdk_version="", min_sdk_version=""):
     pfactory = TBinaryProtocol.TBinaryProtocolFactory()
     server = TServer.TSimpleServer(processor, transport, tfactory, pfactory)
     server.serve()
+
+def deregister_extension():
+    """Deregister the entire extension from the core extension manager"""
+    args = parse_cli_params()
+    client = ExtensionClient(path=args.socket)
+    client.open()
+    em = ExtensionManager()
+
+    if em.uuid is None:
+        raise osquery.extensions.ttypes.ExtensionException(
+            code=1,
+            message="Extension Manager does not have a valid UUID",
+        )
+
+    try:
+        status = client.extension_manager_client().deregisterExtension(em.uuid)
+    except socket.error:
+        message = "Could not connect to %s" % args.socket
+        raise osquery.extensions.ttypes.ExtensionException(
+            code=1,
+            message=message,
+        )
+
+    if status.code is not 0:
+        raise osquery.extensions.ttypes.ExtensionException(
+            code=1,
+            message=status.message,
+        )
+
 
 class BasePlugin(Singleton):
     """All osquery plugins should inherit from BasePlugin"""
