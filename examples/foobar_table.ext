@@ -1,10 +1,11 @@
+#!/usr/bin/env python
 #  LICENSE file in the root directory of this source tree. An additional grant
 #  of patent rights can be found in the PATENTS file in the same directory.
 
 import osquery
 
 @osquery.register_plugin
-class MyTablePlugin(osquery.TablePlugin):
+class FoobarTablePlugin(osquery.TablePlugin):
     def name(self):
         return "foobar"
 

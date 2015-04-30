@@ -8,6 +8,7 @@ from __future__ import unicode_literals
 
 from abc import ABCMeta, abstractmethod
 from collections import namedtuple
+import json
 import socket
 
 try:
@@ -157,8 +158,22 @@ class ExtensionManager(Singleton, osquery.extensions.Extension.Iface):
             of your plugin. for example, this would be the exact name of the
             SQL table, if the plugin was a table plugin.
         """
+
+        # this API only support plugins of the following types:
+        # - table
+        # - config
+        # - logger
+        if registry not in ["table", "config", "logger"]:
+            message = "A registry of an unknown type was called: %s" % registry
+            return osquery.extensions.ttypes.ExtensionResponse(
+                status=osquery.extensions.ttypes.ExtensionStatus(
+                    code=1,
+                    message=message,),
+                response=[],
+            )
+
         try:
-            response = self._plugins[registry][item].generate(request)
+            return self._plugins[registry][item].call(request)
         except KeyError:
             message = "Extension registry does not contain requested plugin"
             return osquery.extensions.ttypes.ExtensionResponse(
@@ -167,11 +182,6 @@ class ExtensionManager(Singleton, osquery.extensions.Extension.Iface):
                     message=message,),
                 response=[],
             )
-        return osquery.extensions.ttypes.ExtensionResponse(
-            status=osquery.extensions.ttypes.ExtensionStatus(code=0,
-                                                             message="OK",),
-            response=response,
-        )
 
 def register_plugin(plugin):
     """Decorator wrapper used for registering a plugin class
@@ -195,6 +205,20 @@ def parse_cli_params():
         type=str,
         default=DEFAULT_SOCKET_PATH,
         help="Path to the extensions UNIX domain socket")
+    parser.add_argument(
+        "--timeout",
+        type=int,
+        default=0,
+        help="XXX")
+    parser.add_argument(
+        "--interval",
+        type=int,
+        default=0,
+        help="XXX")
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="XXX")
     return parser.parse_args()
 
 def start_extension(name="", version="", sdk_version="", min_sdk_version=""):
@@ -281,6 +305,18 @@ class BasePlugin(Singleton):
     __metaclass__ = ABCMeta
 
     @abstractmethod
+    def call(self, context):
+        """Call is the method that is responsible for routing a thrift request
+        to the appropriate class method.
+
+        This must be implemented by the plugin type (ie: LoggerPlugin), but
+        explicitly not an end-user plugin type (ie: MyAwesomeLoggerPlugin)
+
+        call should return an ExtensionResponse, as defined in osquery.thrift
+        """
+        raise NotImplementedError
+
+    @abstractmethod
     def name(self):
         """The name of your plugin.
 
@@ -318,15 +354,72 @@ class ConfigPlugin(BasePlugin):
     """All config plugins should inherit from ConfigPlugin"""
     __metaclass__ = ABCMeta
 
+    def call(self, context):
+        """Internal routing for this plugin type.
+
+        Do not override this method.
+        """
+        if "action" in context:
+            if context["action"] == "genConfig":
+                return osquery.extensions.ttypes.ExtensionResponse(
+                    status=osquery.extensions.ttypes.ExtensionStatus(code=0,
+                                                                     message="OK",),
+                    response=self.content(),)
+
+        return osquery.extensions.ttypes.ExtensionResponse(
+            status=osquery.extensions.ttypes.ExtensionStatus(
+                code=1,
+                message="Not a valid config plugin action",),
+            response=[],)
+
     def registry_name(self):
         """The name of the registry type for config plugins.
 
-        Do not override this method."""
+        Do not override this method.
+        """
         return "config"
 
     @abstractmethod
     def content(self):
         """The implementation of your config plugin.
+
+        This should return a dictionary of the following format:
+
+            [
+                {
+                    "source_name_1": serialized_json_config_string_1,
+                    "source_name_2": serialized_json_config_string_2,
+                }
+            ]
+
+        Consider the following full example of the content method:
+
+            @osquery.register_plugin
+            class TestConfigPlugin(osquery.ConfigPlugin):
+                def name(self):
+                    return "test_config"
+
+                def content(self):
+                    return [
+                        {
+                            "source_one": json.dumps({
+                                "schedule": {
+                                    "time_1": {
+                                        "query": "select * from time",
+                                        "interval": 1,
+                                    },
+                                },
+                            }),
+                            "source_two": json.dumps({
+                                "schedule": {
+                                    "time_2": {
+                                        "query": "select * from time",
+                                        "interval": 2,
+                                    },
+                                },
+                            }),
+                        }
+                    ]
 
         This must be implemented by your plugin.
         """
