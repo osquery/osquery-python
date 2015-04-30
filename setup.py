@@ -17,7 +17,10 @@ setup(name="osquery",
       url="https://osquery.io",
       license="BSD",
       packages=["osquery",],
-      install_requires=['thrift>=0.9'],
+      install_requires=[
+          'thrift>=0.9',
+          'argparse>=1.1',
+      ],
       test_suite="tests",
       cmdclass={
           "build_py": BuildPyCommand,
