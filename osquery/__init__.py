@@ -65,12 +65,12 @@ class ExtensionClient:
 
     def close(self):
         """Close the extension client connection"""
-        if self.transport:
-            self.transport.close()
+        if self._transport:
+            self._transport.close()
 
     def open(self):
         """Attempt to open the UNIX domain socket"""
-        self.transport.open()
+        self._transport.open()
 
     def extension_manager_client(self):
         """Return an extension manager (osquery core) client."""
