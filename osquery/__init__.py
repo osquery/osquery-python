@@ -8,8 +8,6 @@ __version__ = "1.4.5"
 __author__ = "osquery developers"
 __license__ = "BSD"
 __copyright__ = "Copyright 2015 Facebook"
-__author_email__ = "osquery@fb.com"
-__description__ = "osquery python api"
 __url__ = "https://osquery.io"
 
 __all__ = [

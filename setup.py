@@ -69,24 +69,18 @@ TITLE = re.search(r'^__title__\s*=\s*[\'"]([^\'"]*)[\'"]',
                   __INIT__, re.MULTILINE).group(1)
 VERSION = re.search(r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]',
                     __INIT__, re.MULTILINE).group(1)
-DESCRIPTION = re.search(r'^__description__\s*=\s*[\'"]([^\'"]*)[\'"]',
-                        __INIT__, re.MULTILINE).group(1)
 AUTHOR = re.search(r'^__author__\s*=\s*[\'"]([^\'"]*)[\'"]',
                    __INIT__, re.MULTILINE).group(1)
-AUTHOR_EMAIL = re.search(r'^__author_email__\s*=\s*[\'"]([^\'"]*)[\'"]',
-                         __INIT__, re.MULTILINE).group(1)
-URL = re.search(r'^__url__\s*=\s*[\'"]([^\'"]*)[\'"]',
-                __INIT__, re.MULTILINE).group(1)
 LICENSE = re.search(r'^__license__\s*=\s*[\'"]([^\'"]*)[\'"]',
                     __INIT__, re.MULTILINE).group(1)
 
 setup(name=TITLE,
       version=VERSION,
-      description=DESCRIPTION,
+      description="Osquery Python API",
       long_description=README,
       author=AUTHOR,
-      author_email=AUTHOR_EMAIL,
-      url=URL,
+      author_email="osquery@fb.com",
+      url="https://osquery.io",
       license=LICENSE,
       packages=["osquery",],
       install_requires=[
