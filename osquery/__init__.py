@@ -25,7 +25,7 @@ from osquery.extension_client import DEFAULT_SOCKET_PATH, ExtensionClient
 from osquery.extension_manager import ExtensionManager
 from osquery.logger_plugin import LoggerPlugin
 from osquery.management import parse_cli_params, start_extension, \
-        deregister_extension, register_plugin
+    deregister_extension, register_plugin
 from osquery.plugin import BasePlugin
 from osquery.singleton import Singleton
 from osquery.table_plugin import TablePlugin, STRING, INTEGER, TableColumn
