@@ -1,15 +1,26 @@
 #!/usr/bin/env python
 
 from os import system
-from setuptools import setup
-from setuptools.command.build_py import build_py
+from setuptools import setup, Command
 
-class BuildPyCommand(build_py):
-    """Override build_py to generate the thrift python code"""
+class GenerateThriftCommand(Command):
+    """Generate thrift code"""
+
+    description = "Generate thrift code"
+    user_options = []
+
+    def initialize_options(self):
+        """Set default values for options."""
+        pass
+
+    def finalize_options(self):
+        """Post-process options."""
+        pass
 
     def run(self):
-        build_py.run(self)
-        system("thrift -gen py -out build/lib osquery.thrift")
+        """Run the command"""
+        system("thrift -gen py -out . osquery.thrift")
+        system("rm osquery/extensions/*-remote")
 
 setup(name="osquery",
       version="1.4.4",
@@ -23,6 +34,6 @@ setup(name="osquery",
       ],
       test_suite="tests",
       cmdclass={
-          "build_py": BuildPyCommand,
+          "generate": GenerateThriftCommand,
       },
 )
