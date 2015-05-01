@@ -489,6 +489,34 @@ class TablePlugin(BasePlugin):
     """All table plugins should inherit from TablePlugin"""
     __metaclass__ = ABCMeta
 
+    def call(self, context):
+        """Internal routing for this plugin type.
+
+        Do not override this method.
+        """
+        if "action" not in context:
+            return osquery.extensions.ttypes.ExtensionResponse(
+                status=osquery.extensions.ttypes.ExtensionStatus(
+                    code=1,
+                    message="Table plugins must include a request action",),
+                response=[],)
+
+        if context["action"] == "generate":
+            ctx = {}
+            if "context" in context:
+                ctx = json.dumps(context["context"])
+            return osquery.extensions.ttypes.ExtensionResponse(
+                status=osquery.extensions.ttypes.ExtensionStatus(
+                    code=0,
+                    message="OK",),
+                response=self.generate(ctx),)
+        elif context["action"] == "columns":
+            return osquery.extensions.ttypes.ExtensionResponse(
+                status=osquery.extensions.ttypes.ExtensionStatus(
+                    code=0,
+                    message="OK",),
+                response=self.routes(),)
+
     def registry_name(self):
         """The name of the registry type for table plugins.
 
