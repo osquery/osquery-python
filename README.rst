@@ -99,7 +99,7 @@ and the `osquery wiki <https://osquery.readthedocs.org>`_ for development inform
 Packaging
 ---------
 
-We build the osquery package as a `wheel <https://pypi.python.org/pypi/wheel>_`.
+We build the osquery package as a `wheel <https://pypi.python.org/pypi/wheel>`_.
 To build the wheel, run the following from the root of this repository:
 
 .. code-block:: bash
