@@ -1,3 +1,6 @@
+osquery-python
+==============
+
 .. image:: https://i.imgur.com/9Vy2GFx.png
   :target: https://osquery.io
 
