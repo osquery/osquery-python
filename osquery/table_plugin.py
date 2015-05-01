@@ -29,7 +29,8 @@ class TablePlugin(BasePlugin):
         """
         if "action" not in context:
             return ExtensionResponse(
-                status=ExtensionStatus(code=1, message=self._no_action_message,),
+                status=ExtensionStatus(code=1,
+                                       message=self._no_action_message,),
                 response=[],)
 
         if context["action"] == "generate":

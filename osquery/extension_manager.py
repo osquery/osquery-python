@@ -94,12 +94,14 @@ class ExtensionManager(Singleton, Iface):
         # - logger
         if registry not in ["table", "config", "logger"]:
             message = "A registry of an unknown type was called: %s" % registry
-            return ExtensionResponse(status=ExtensionStatus(code=1, message=message,),
-                                     response=[],)
+            return ExtensionResponse(
+                status=ExtensionStatus(code=1, message=message,),
+                response=[],)
 
         try:
             return self._plugins[registry][item].call(request)
         except KeyError:
             message = "Extension registry does not contain requested plugin"
-            return ExtensionResponse(status=ExtensionStatus(code=1, message=message,),
-                                     response=[],)
+            return ExtensionResponse(
+                status=ExtensionStatus(code=1, message=message,),
+                response=[],)

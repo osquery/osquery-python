@@ -32,6 +32,11 @@ class LintCommand(Command):
     description = "Run pylint on implementation and test code"
     user_options = []
 
+    _pylint_options = [
+        "--max-line-length 80",
+        "--ignore-imports yes"
+    ]
+
     def initialize_options(self):
         """Set default values for options."""
         pass
@@ -42,8 +47,8 @@ class LintCommand(Command):
 
     def run(self):
         """Run the command"""
-        system("pylint osquery/*.py tests/*.py")
-
+        system("pylint %s osquery/*.py tests/*.py" % " ".join(
+            self._pylint_options))
 
 with open("README.rst", "r") as f:
     README = f.read()
