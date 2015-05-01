@@ -4,6 +4,7 @@ setup.py
 """
 
 from os import system
+import re
 from setuptools import setup, Command
 
 class GenerateThriftCommand(Command):
@@ -53,14 +54,32 @@ class LintCommand(Command):
 with open("README.rst", "r") as f:
     README = f.read()
 
-setup(name="osquery",
-      version="1.4.5",
-      description="osquery python API",
+with open("osquery/__init__.py", "r") as f:
+    __INIT__ = f.read()
+
+TITLE = re.search(r'^__title__\s*=\s*[\'"]([^\'"]*)[\'"]',
+                  __INIT__, re.MULTILINE).group(1)
+VERSION = re.search(r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]',
+                    __INIT__, re.MULTILINE).group(1)
+DESCRIPTION = re.search(r'^__description__\s*=\s*[\'"]([^\'"]*)[\'"]',
+                        __INIT__, re.MULTILINE).group(1)
+AUTHOR = re.search(r'^__author__\s*=\s*[\'"]([^\'"]*)[\'"]',
+                   __INIT__, re.MULTILINE).group(1)
+AUTHOR_EMAIL = re.search(r'^__author_email__\s*=\s*[\'"]([^\'"]*)[\'"]',
+                         __INIT__, re.MULTILINE).group(1)
+URL = re.search(r'^__url__\s*=\s*[\'"]([^\'"]*)[\'"]',
+                __INIT__, re.MULTILINE).group(1)
+LICENSE = re.search(r'^__license__\s*=\s*[\'"]([^\'"]*)[\'"]',
+                    __INIT__, re.MULTILINE).group(1)
+
+setup(name=TITLE,
+      version=VERSION,
+      description=DESCRIPTION,
       long_description=README,
-      author="osquery developers",
-      author_email="osquery@fb.com",
-      url="https://osquery.io",
-      license="BSD",
+      author=AUTHOR,
+      author_email=AUTHOR_EMAIL,
+      url=URL,
+      license=LICENSE,
       packages=["osquery",],
       install_requires=[
           'thrift>=0.9',
