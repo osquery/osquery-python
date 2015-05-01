@@ -86,6 +86,12 @@ To install, clone this repo and run the following:
   python setup.py build
   python setup.py install
 
+Alternatively, if you don't want to clone the repo, you can simply:
+
+.. code-block:: none
+
+  pip install git+git://github.com/osquery/osquery-python.git
+
 Vulnerabilities
 ---------------
 
