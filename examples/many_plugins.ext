@@ -1,0 +1,68 @@
+#!/usr/bin/env python
+#  LICENSE file in the root directory of this source tree. An additional grant
+#  of patent rights can be found in the PATENTS file in the same directory.
+
+import osquery
+import json
+
+@osquery.register_plugin
+class TestConfigPlugin(osquery.ConfigPlugin):
+    def name(self):
+        return "test_config"
+
+    def content(self):
+        return [
+            {
+                "source_one": json.dumps({
+                    "schedule": {
+                        "time_1": {
+                            "query": "select * from time",
+                            "interval": 1,
+                        },
+                    },
+                }),
+                "source_two": json.dumps({
+                    "schedule": {
+                        "time_2": {
+                            "query": "select * from foobar",
+                            "interval": 2,
+                        },
+                    },
+                }),
+            }
+        ]
+
+@osquery.register_plugin
+class TestLoggerPlugin(osquery.LoggerPlugin):
+    def name(self):
+        return "test_logger"
+
+    def log_string(self, value):
+      with open("/tmp/osqueryd.results.log", "a") as f:
+        f.write(value)
+      return osquery.extensions.ttypes.ExtensionStatus(code=0, message="OK")
+
+@osquery.register_plugin
+class FoobarTablePlugin(osquery.TablePlugin):
+    def name(self):
+        return "foobar"
+
+    def columns(self):
+        return [
+            osquery.TableColumn(name="foo", type=osquery.STRING),
+            osquery.TableColumn(name="baz", type=osquery.STRING),
+        ]
+
+    def generate(self, context):
+        query_data = []
+
+        for i in range(2):
+            row = {}
+            row["foo"] = "bar"
+            row["baz"] = "baz"
+            query_data.append(row)
+
+        return query_data
+
+if __name__ == "__main__":
+    osquery.start_extension()
