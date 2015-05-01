@@ -1,11 +1,15 @@
 .. image:: https://i.imgur.com/oiXIVrf.png
   :target: https://osquery.io
 
-osquery exposes an operating system as a high-performance relational database.
-This allows you to write SQL-based queries to explore operating system data.
-With osquery, SQL tables represent abstract concepts such as running processes,
-loaded kernel modules, open network connections, browser plugins, hardware
-events or file hashes.
+`osquery <https://github.com/facebook/osquery>`_ exposes an operating system as
+a high-performance relational database. This allows you to write SQL-based
+queries to explore operating system data. With osquery, SQL tables represent
+abstract concepts such as running processes, loaded kernel modules, open
+network connections, browser plugins, hardware events or file hashes.
+
+If you're interested in learning more about osquery, visit the `GitHub project
+<https://github.com/facebook/osquery>`_, the `website <https://osquery.io>`_, and
+the `users guide <https://osquery.readthedocs.org/>`_.
 
 What is osquery-python?
 -----------------------
@@ -122,10 +126,3 @@ submit it via the process outlined on that page and do not file a public issue.
 For more information on finding vulnerabilities in osquery, see a recent blog
 post about `bug-hunting osquery
 <https://www.facebook.com/notes/facebook-bug-bounty/bug-hunting-osquery/954850014529225>`_.
-
-Learn more
-----------
-
-If you're interested in learning more about osquery, visit the `GitHub project
-<https://github.com/facebook/osquery>`_, the `website <https://osquery.io>`_, and
-the `users guide <https://osquery.readthedocs.org/>`_.
