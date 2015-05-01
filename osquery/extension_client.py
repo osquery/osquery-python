@@ -20,6 +20,7 @@ DEFAULT_SOCKET_PATH = "/var/osquery/osquery.em"
 class ExtensionClient(object):
     """A client for connecting to an existing extension manager socket"""
 
+    _protocol = None
     _transport = None
 
     def __init__(self, path=DEFAULT_SOCKET_PATH, uuid=None):
@@ -31,10 +32,9 @@ class ExtensionClient(object):
         self.path = path
         if uuid:
             self.path += ".%s" % str(uuid)
-        transport = TSocket.TSocket(unix_socket=self.path)
-        transport = TTransport.TBufferedTransport(transport)
-        self.protocol = TBinaryProtocol.TBinaryProtocol(transport)
-        self._transport = transport
+        sock = TSocket.TSocket(unix_socket=self.path)
+        self._transport = TTransport.TBufferedTransport(sock)
+        self._protocol = TBinaryProtocol.TBinaryProtocol(self._transport)
 
     def close(self):
         """Close the extension client connection"""
@@ -47,8 +47,8 @@ class ExtensionClient(object):
 
     def extension_manager_client(self):
         """Return an extension manager (osquery core) client."""
-        return Client(self.protocol)
+        return Client(self._protocol)
 
     def extension_client(self):
         """Return an extension (osquery extension) client."""
-        return Client(self.protocol)
+        return Client(self._protocol)
