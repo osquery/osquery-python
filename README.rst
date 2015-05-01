@@ -97,6 +97,23 @@ Development
 See `CONTRIBUTING.md <https://github.com/osquery/osquery-python/blob/master/CONTRIBUTING.md>`_
 and the `osquery wiki <https://osquery.readthedocs.org>`_ for development information.
 
+Packaging
+---------
+
+We build the osquery package as a `wheel <https://pypi.python.org/pypi/wheel>_`.
+To build the wheel, run the following from the root of this repository:
+
+.. code-block:: bash
+
+  # install dependencies
+  pip install -r requirements.txt
+
+  # build package
+  python setup.py bdist_wheel
+
+  # upload the package
+  twine upload dist/*
+
 Vulnerabilities
 ---------------
 
