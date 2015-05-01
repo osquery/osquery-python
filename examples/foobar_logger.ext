@@ -10,7 +10,7 @@ class FoobarLoggerPlugin(osquery.LoggerPlugin):
         return "foobar_logger"
 
     def log_string(self, value):
-      with open("/tmp/osqueryd.results.log", "w") as f:
+      with open("/tmp/osqueryd.results.log", "a") as f:
         f.write(value)
       return osquery.extensions.ttypes.ExtensionStatus(code=0, message="OK")
 
