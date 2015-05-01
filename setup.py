@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+"""
+setup.py
+"""
 
 from os import system
 from setuptools import setup, Command
@@ -22,9 +25,15 @@ class GenerateThriftCommand(Command):
         system("thrift -gen py -out . osquery.thrift")
         system("rm osquery/extensions/*-remote")
 
+with open('README.rst', 'r', 'utf-8') as f:
+    README = f.read()
+
 setup(name="osquery",
-      version="1.4.4",
+      version="1.4.5",
       description="osquery python API",
+      long_description=README,
+      author="osquery developers",
+      author_email="osquery@fb.com",
       url="https://osquery.io",
       license="BSD",
       packages=["osquery",],
@@ -35,5 +44,4 @@ setup(name="osquery",
       test_suite="tests",
       cmdclass={
           "generate": GenerateThriftCommand,
-      },
-)
+      },)
