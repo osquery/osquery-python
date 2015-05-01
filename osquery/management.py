@@ -1,0 +1,144 @@
+"""LICENSE file in the root directory of this source tree. An additional grant
+of patent rights can be found in the PATENTS file in the same directory.
+"""
+
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
+import socket
+
+try:
+    import argparse
+except ImportError:
+    print("Cannot import argparse: pip install argparse")
+    exit(1)
+
+try:
+    from thrift.transport import TSocket
+    from thrift.transport import TTransport
+    from thrift.protocol import TBinaryProtocol
+    from thrift.server import TServer
+except ImportError:
+    print("Cannot import thrift: pip install thrift")
+    exit(1)
+
+from osquery.extensions.ttypes import ExtensionException, InternalExtensionInfo
+from osquery.extensions.Extension import Processor
+from osquery.extension_client import ExtensionClient, DEFAULT_SOCKET_PATH
+from osquery.extension_manager import ExtensionManager
+
+def parse_cli_params():
+    """Parse CLI parameters passed to the extension executable"""
+    parser = argparse.ArgumentParser(description=(
+        "osquery python api"
+    ))
+    parser.add_argument(
+        "--socket",
+        type=str,
+        default=DEFAULT_SOCKET_PATH,
+        help="Path to the extensions UNIX domain socket")
+    parser.add_argument(
+        "--timeout",
+        type=int,
+        default=0,
+        help="XXX")
+    parser.add_argument(
+        "--interval",
+        type=int,
+        default=0,
+        help="XXX")
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="XXX")
+    return parser.parse_args()
+
+def start_extension(name="", version="", sdk_version="", min_sdk_version=""):
+    """Start your extension by communicating with osquery core and starting
+    a thrift server.
+
+    Keyword arguments:
+    name -- the name of your extension
+    version -- the version of your extension
+    sdk_version -- the version of the osquery SDK used to build this extension
+    min_sdk_version -- the minimum version of the osquery SDK that you can use
+    """
+    args = parse_cli_params()
+    client = ExtensionClient(path=args.socket)
+    client.open()
+    ext_manager = ExtensionManager()
+
+    # try connecting to the desired osquery core extension manager socket
+    try:
+        status = client.extension_manager_client().registerExtension(
+            info=InternalExtensionInfo(
+                name=name,
+                version=version,
+                sdk_version=sdk_version,
+                min_sdk_version=min_sdk_version,
+            ),
+            registry=ext_manager.registry(),
+        )
+    except socket.error:
+        message = "Could not connect to %s" % args.socket
+        raise ExtensionException(
+            code=1,
+            message=message,
+        )
+
+    if status.code is not 0:
+        raise ExtensionException(
+            code=1,
+            message=status.message,
+        )
+
+    # start a thrift server listening at the path dictated by the uuid returned
+    # by the osquery core extension manager
+    ext_manager.uuid = status.uuid
+    processor = Processor(ext_manager)
+    transport = transport = TSocket.TServerSocket(
+        unix_socket=args.socket + "." + str(status.uuid))
+    tfactory = TTransport.TBufferedTransportFactory()
+    pfactory = TBinaryProtocol.TBinaryProtocolFactory()
+    server = TServer.TSimpleServer(processor, transport, tfactory, pfactory)
+    server.serve()
+
+def deregister_extension():
+    """Deregister the entire extension from the core extension manager"""
+    args = parse_cli_params()
+    client = ExtensionClient(path=args.socket)
+    client.open()
+    ext_manager = ExtensionManager()
+
+    if ext_manager.uuid is None:
+        raise ExtensionException(
+            code=1,
+            message="Extension Manager does not have a valid UUID",
+        )
+
+    try:
+        status = client.extension_manager_client().deregisterExtension(
+            ext_manager.uuid)
+    except socket.error:
+        message = "Could not connect to %s" % args.socket
+        raise ExtensionException(
+            code=1,
+            message=message,
+        )
+
+    if status.code is not 0:
+        raise ExtensionException(code=1, message=status.message,)
+
+def register_plugin(plugin):
+    """Decorator wrapper used for registering a plugin class
+
+    To register your plugin, add this decorator to your plugin's implementation
+    class:
+
+        @osquery.register_plugin
+        class MyTablePlugin(osquery.TablePlugin):
+    """
+    ext_manager = ExtensionManager()
+    ext_manager.add_plugin(plugin)
