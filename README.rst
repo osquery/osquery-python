@@ -7,13 +7,13 @@ With osquery, SQL tables represent abstract concepts such as running processes,
 loaded kernel modules, open network connections, browser plugins, hardware
 events or file hashes.
 
-SQL tables are implemented via a simple plugin and extensions API.
-
 What is osquery-python?
 -----------------------
 
-This project contains the official Python bindings for creating osquery
-extensions in Python. Consider the following example:
+In osquery, SQL tables, configuration retrieval, log handling, etc are implemented
+via a simple, robust plugin and extensions API. This project contains the official 
+Python bindings for creating osquery extensions in Python. Consider the following 
+example:
 
 .. code-block:: python
 
