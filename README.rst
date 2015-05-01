@@ -1,4 +1,4 @@
-.. image:: https://i.imgur.com/oiXIVrf.png
+.. image:: https://i.imgur.com/9Vy2GFx.png
   :target: https://osquery.io
 
 `osquery <https://github.com/facebook/osquery>`_ exposes an operating system as
