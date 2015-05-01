@@ -19,6 +19,7 @@ This project contains the official Python bindings for creating osquery
 extensions in Python. Consider the following example:
 
 .. code-block:: python
+
   import osquery
 
   @osquery.register_plugin
@@ -49,7 +50,8 @@ extensions in Python. Consider the following example:
 This will register a table called "foobar". As you can see, the table will
 return two rows:
 
-.. code-block
+.. code-block:: none
+
     osquery> select * from foobar;
     +-----+-----+
     | foo | baz |
