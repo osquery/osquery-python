@@ -19,32 +19,32 @@ This project contains the official Python bindings for creating osquery
 extensions in Python. Consider the following example:
 
 .. code-block:: python
-    import osquery
+  import osquery
 
-    @osquery.register_plugin
-    class MyTablePlugin(osquery.TablePlugin):
-        def name(self):
-            return "foobar"
+  @osquery.register_plugin
+  class MyTablePlugin(osquery.TablePlugin):
+      def name(self):
+          return "foobar"
 
-        def columns(self):
-            return [
-                osquery.TableColumn(name="foo", type=osquery.STRING),
-                osquery.TableColumn(name="baz", type=osquery.STRING),
-            ]
+      def columns(self):
+          return [
+              osquery.TableColumn(name="foo", type=osquery.STRING),
+              osquery.TableColumn(name="baz", type=osquery.STRING),
+          ]
 
-        def generate(self, context):
-            query_data = []
+      def generate(self, context):
+          query_data = []
 
-            for i in range(2):
-                row = {}
-                row["foo"] = "bar"
-                row["baz"] = "baz"
-                query_data.append(row)
+          for i in range(2):
+              row = {}
+              row["foo"] = "bar"
+              row["baz"] = "baz"
+              query_data.append(row)
 
-            return query_data
+          return query_data
 
-    if __name__ == "__main__":
-        osquery.start_extension()
+  if __name__ == "__main__":
+      osquery.start_extension()
 
 This will register a table called "foobar". As you can see, the table will
 return two rows:
