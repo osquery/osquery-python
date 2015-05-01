@@ -1,5 +1,10 @@
-#  LICENSE file in the root directory of this source tree. An additional grant
-#  of patent rights can be found in the PATENTS file in the same directory.
+"""LICENSE file in the root directory of this source tree. An additional grant
+of patent rights can be found in the PATENTS file in the same directory.
+"""
+
+# pylint: disable=too-few-public-methods
+# pylint: disable=no-self-use
+# pylint: disable=unused-argument
 
 from __future__ import absolute_import
 from __future__ import division
@@ -38,14 +43,13 @@ class Singleton(object):
     """A simple singleton base class"""
     _instance = None
 
-    def __new__(self, *args, **kwargs):
+    def __new__(cls, *args, **kwargs):
         """Override __new__ to implement custom instantiation"""
-        if not self._instance:
-            self._instance = super(Singleton, self).__new__(
-                                   self, *args, **kwargs)
-        return self._instance
+        if not cls._instance:
+            cls._instance = super(Singleton, cls).__new__(cls, *args, **kwargs)
+        return cls._instance
 
-class ExtensionClient:
+class ExtensionClient(object):
     """A client for connecting to an existing extension manager socket"""
 
     _transport = None
@@ -79,7 +83,7 @@ class ExtensionClient:
 
     def extension_client(self):
         """Return an extension (osquery extension) client."""
-        return Extension.Client(self.protocol)
+        return osquery.extensions.Extension.Client(self.protocol)
 
 class ExtensionManager(Singleton, osquery.extensions.Extension.Iface):
     """The thrift server for handling extension requests
@@ -192,8 +196,8 @@ def register_plugin(plugin):
         @osquery.register_plugin
         class MyTablePlugin(osquery.TablePlugin):
     """
-    em = ExtensionManager()
-    em.add_plugin(plugin)
+    ext_manager = ExtensionManager()
+    ext_manager.add_plugin(plugin)
 
 def parse_cli_params():
     """Parse CLI parameters passed to the extension executable"""
@@ -234,7 +238,7 @@ def start_extension(name="", version="", sdk_version="", min_sdk_version=""):
     args = parse_cli_params()
     client = ExtensionClient(path=args.socket)
     client.open()
-    em = ExtensionManager()
+    ext_manager = ExtensionManager()
 
     # try connecting to the desired osquery core extension manager socket
     try:
@@ -245,7 +249,7 @@ def start_extension(name="", version="", sdk_version="", min_sdk_version=""):
                 sdk_version=sdk_version,
                 min_sdk_version=min_sdk_version,
             ),
-            registry=em.registry(),
+            registry=ext_manager.registry(),
         )
     except socket.error:
         message = "Could not connect to %s" % args.socket
@@ -262,8 +266,8 @@ def start_extension(name="", version="", sdk_version="", min_sdk_version=""):
 
     # start a thrift server listening at the path dictated by the uuid returned
     # by the osquery core extension manager
-    em.uuid = status.uuid
-    processor = osquery.extensions.Extension.Processor(em)
+    ext_manager.uuid = status.uuid
+    processor = osquery.extensions.Extension.Processor(ext_manager)
     transport = transport = TSocket.TServerSocket(
         unix_socket=args.socket + "." + str(status.uuid))
     tfactory = TTransport.TBufferedTransportFactory()
@@ -276,16 +280,16 @@ def deregister_extension():
     args = parse_cli_params()
     client = ExtensionClient(path=args.socket)
     client.open()
-    em = ExtensionManager()
+    ext_manager = ExtensionManager()
 
-    if em.uuid is None:
+    if ext_manager.uuid is None:
         raise osquery.extensions.ttypes.ExtensionException(
             code=1,
             message="Extension Manager does not have a valid UUID",
         )
 
     try:
-        status = client.extension_manager_client().deregisterExtension(em.uuid)
+        status = client.extension_manager_client().deregisterExtension(ext_manager.uuid)
     except socket.error:
         message = "Could not connect to %s" % args.socket
         raise osquery.extensions.ttypes.ExtensionException(
