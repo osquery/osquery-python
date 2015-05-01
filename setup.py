@@ -2,7 +2,7 @@
 """This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
-"""""
+"""
 
 from os import system
 import re
@@ -94,7 +94,7 @@ setup(name=TITLE,
       },
       classifiers=[
           # https://pypi.python.org/pypi?%3Aaction=list_classifiers
-          "Development Status :: 3 - Alpha",
+          "Development Status :: 4 - Beta",
 
           "Intended Audience :: System Administrators",
           "Topic :: Security",

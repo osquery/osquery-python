@@ -11,8 +11,8 @@ What is osquery-python?
 -----------------------
 
 In osquery, SQL tables, configuration retrieval, log handling, etc are implemented
-via a simple, robust plugin and extensions API. This project contains the official 
-Python bindings for creating osquery extensions in Python. Consider the following 
+via a simple, robust plugin and extensions API. This project contains the official
+Python bindings for creating osquery extensions in Python. Consider the following
 example:
 
 .. code-block:: python
@@ -42,7 +42,9 @@ example:
           return query_data
 
   if __name__ == "__main__":
-      osquery.start_extension()
+      osquery.start_extension(
+        name="my_awesome_extension",
+        version="1.0.0",)
 
 This will register a table called "foobar". As you can see, the table will
 return two rows:
