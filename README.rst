@@ -1,8 +1,5 @@
-osquery-python
-==============
-
-What is osquery?
-----------------
+.. image:: https://i.imgur.com/oiXIVrf.png
+  :target: https://osquery.io
 
 osquery exposes an operating system as a high-performance relational database.
 This allows you to write SQL-based queries to explore operating system data.
