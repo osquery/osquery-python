@@ -127,5 +127,5 @@ Learn more
 ----------
 
 If you're interested in learning more about osquery, visit the `GitHub project
-<https://github.com/facebook/osquery>`_,the `website <https://osquery.io>`_, and
+<https://github.com/facebook/osquery>`_, the `website <https://osquery.io>`_, and
 the `users guide <https://osquery.readthedocs.org/>`_.
