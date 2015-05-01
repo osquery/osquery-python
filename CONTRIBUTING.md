@@ -59,3 +59,18 @@ We adhere to [PEP 8](https://www.python.org/dev/peps/pep-0008/) for style, as
 well as [PEP 257](https://www.python.org/dev/peps/pep-0257/) for docstring
 conventions. If you notice that the codebase is not compliant with those
 specifications, please file an issue and/or submit a pull request with a patch.
+
+### Testing
+
+To run the tests, run the following from the root of the repository:
+
+```
+# install dependencies
+pip install -r requirements.txt
+
+# build the module
+python setup.py build
+
+# test the module
+python setup.py test
+```
