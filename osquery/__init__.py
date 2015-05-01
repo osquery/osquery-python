@@ -332,6 +332,43 @@ class LoggerPlugin(BasePlugin):
     """All logger plugins should inherit from LoggerPlugin"""
     __metaclass__ = ABCMeta
 
+    def call(self, context):
+        """Internal routing for this plugin type.
+
+        Do not override this method.
+        """
+        if "string" in context:
+            return osquery.extensions.ttypes.ExtensionResponse(
+                status=self.log_string(context["string"]),
+                response=[],)
+        elif "snapshot" in context:
+            return osquery.extensions.ttypes.ExtensionResponse(
+                status=self.log_snapshot(context["snapshot"]),
+                response=[],)
+        elif "health" in context:
+            return osquery.extensions.ttypes.ExtensionResponse(
+                status=self.log_health(context["health"]),
+                response=[],)
+        elif "init" in context:
+            return osquery.extensions.ttypes.ExtensionResponse(
+                status=osquery.extensions.ttypes.ExtensionStatus(
+                    code=1,
+                    message="Use Glog for status logging.",),
+                response=[],)
+        elif "status" in context:
+            return osquery.extensions.ttypes.ExtensionResponse(
+                status=osquery.extensions.ttypes.ExtensionStatus(
+                    code=1,
+                    message="Use Glog for status logging.",),
+                response=[],)
+        else:
+            return osquery.extensions.ttypes.ExtensionResponse(
+                status=osquery.extensions.ttypes.ExtensionStatus(
+                    code=1,
+                    message="Not a valid logger plugin action",),
+                response=[],)
+
+
     def registry_name(self):
         """The name of the registry type for logger plugins.
 
@@ -339,16 +376,38 @@ class LoggerPlugin(BasePlugin):
         return "logger"
 
     @abstractmethod
-    def log(self, value):
+    def log_string(self, value):
         """The implementation of your logger plugin.
 
         This must be implemented by your plugin.
+
+        This must return an osquery.extensions.ttypes.ExtensionStatus
 
         Arguments:
         value -- the string to log
         """
         raise NotImplementedError
 
+    def log_health(self, value):
+        """If you'd like the log health statistics about osquery's performance,
+        override this method in your logger plugin.
+
+        By default, this action is a noop.
+
+        This must return an osquery.extensions.ttypes.ExtensionStatus
+        """
+        return osquery.extensions.ttypes.ExtensionStatus(code=0,
+                                                         message="OK",)
+
+    def log_snapshot(self, value):
+        """If you'd like to log snapshot queries in a special way, override
+        this method.
+
+        By default, this action is just hands off the string to log_string.
+
+        This must return an osquery.extensions.ttypes.ExtensionStatus
+        """
+        return self.log_string(value)
 
 class ConfigPlugin(BasePlugin):
     """All config plugins should inherit from ConfigPlugin"""
