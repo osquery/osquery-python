@@ -39,6 +39,11 @@ class LintCommand(Command):
         "--ignore-imports yes"
     ]
 
+    _lint_paths = [
+        "osquery/*.py",
+        "tests/*.py",
+    ]
+
     def initialize_options(self):
         """Set default values for options."""
         pass
@@ -49,8 +54,10 @@ class LintCommand(Command):
 
     def run(self):
         """Run the command"""
-        system("pylint %s osquery/*.py tests/*.py" % " ".join(
-            self._pylint_options))
+        system("pylint %s %s" % (
+            " ".join(self._pylint_options),
+            " ".join(self._lint_paths),
+        ))
 
 with open("README.rst", "r") as f:
     README = f.read()
@@ -83,8 +90,8 @@ setup(name=TITLE,
       license=LICENSE,
       packages=["osquery",],
       install_requires=[
-          'thrift>=0.9',
-          'argparse>=1.1',
+          "thrift>=0.9",
+          "argparse>=1.1",
       ],
       test_suite="tests",
       cmdclass={
