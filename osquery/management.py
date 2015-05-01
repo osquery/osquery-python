@@ -7,22 +7,13 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import argparse
 import socket
 
-try:
-    import argparse
-except ImportError:
-    print("Cannot import argparse: pip install argparse")
-    exit(1)
-
-try:
-    from thrift.transport import TSocket
-    from thrift.transport import TTransport
-    from thrift.protocol import TBinaryProtocol
-    from thrift.server import TServer
-except ImportError:
-    print("Cannot import thrift: pip install thrift")
-    exit(1)
+from thrift.protocol import TBinaryProtocol
+from thrift.server import TServer
+from thrift.transport import TSocket
+from thrift.transport import TTransport
 
 from osquery.extensions.ttypes import ExtensionException, InternalExtensionInfo
 from osquery.extensions.Extension import Processor
@@ -32,7 +23,7 @@ from osquery.extension_manager import ExtensionManager
 def parse_cli_params():
     """Parse CLI parameters passed to the extension executable"""
     parser = argparse.ArgumentParser(description=(
-        "osquery python api"
+        "osquery python extension"
     ))
     parser.add_argument(
         "--socket",
@@ -43,16 +34,16 @@ def parse_cli_params():
         "--timeout",
         type=int,
         default=0,
-        help="XXX")
+        help="Seconds to wait for autoloaded extensions")
     parser.add_argument(
         "--interval",
         type=int,
         default=0,
-        help="XXX")
+        help="Seconds delay between connectivity checks")
     parser.add_argument(
         "--verbose",
         action="store_true",
-        help="XXX")
+        help="Enable verbose informational messages")
     return parser.parse_args()
 
 def start_extension(name="", version="", sdk_version="", min_sdk_version=""):

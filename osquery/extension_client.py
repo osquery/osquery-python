@@ -7,13 +7,9 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-try:
-    from thrift.transport import TSocket
-    from thrift.transport import TTransport
-    from thrift.protocol import TBinaryProtocol
-except ImportError:
-    print("Cannot import thrift: pip install thrift")
-    exit(1)
+from thrift.protocol import TBinaryProtocol
+from thrift.transport import TSocket
+from thrift.transport import TTransport
 
 from osquery.extensions.ExtensionManager import Client
 
