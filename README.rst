@@ -92,6 +92,11 @@ Alternatively, if you don't want to clone the repo, you can simply:
 
   pip install git+git://github.com/osquery/osquery-python.git
 
+Development
+-----------
+See `CONTRIBUTING.md <https://github.com/osquery/osquery-python/blob/master/CONTRIBUTING.md>`_
+and the `osquery wiki <https://osquery.readthedocs.org>`_ for development information.
+
 Vulnerabilities
 ---------------
 
