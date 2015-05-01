@@ -25,7 +25,7 @@ class GenerateThriftCommand(Command):
         system("thrift -gen py -out . osquery.thrift")
         system("rm osquery/extensions/*-remote")
 
-with open('README.rst', 'r', 'utf-8') as f:
+with open("README.rst", "r") as f:
     README = f.read()
 
 setup(name="osquery",

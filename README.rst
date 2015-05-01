@@ -52,14 +52,14 @@ return two rows:
 
 .. code-block:: none
 
-    osquery> select * from foobar;
-    +-----+-----+
-    | foo | baz |
-    +-----+-----+
-    | bar | baz |
-    | bar | baz |
-    +-----+-----+
-    osquery>
+  osquery> select * from foobar;
+  +-----+-----+
+  | foo | baz |
+  +-----+-----+
+  | bar | baz |
+  | bar | baz |
+  +-----+-----+
+  osquery>
 
 
 This is obviously a contrived example, but it's easy to imagine the
@@ -72,6 +72,19 @@ you can easily deploy your extension with an existing osquery deployment.
 Extensions are the core way that you can extend and customize osquery. At
 Facebook, we use extensions extensively to implement many plugins that take
 advantage of internal APIs and tools.
+
+Install
+-------
+
+This module is currently in "beta mode". We're testing the API and UX before
+uploading the module to PyPI.
+
+To install, clone this repo and run the following:
+
+.. code-block:: none
+
+  python setup.py build
+  python setup.py install
 
 Vulnerabilities
 ---------------

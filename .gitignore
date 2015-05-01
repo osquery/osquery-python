@@ -1,3 +1,4 @@
 build
 *.pyc
 osquery.egg-info
+dist
