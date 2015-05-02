@@ -8,6 +8,21 @@ Facebook CLA, a GitHub Bot will comment on the pull request asking you to submit
 a CLA. Feel free to wait until then to submit it (it only takes a few seconds)
 or complete your CLA proactively, here: <https://code.facebook.com/cla>
 
+## Tracking Features and Getting Help
+
+If you'd like to implement new features, check out this projects
+[GitHub Issues](https://github.com/osquery/osquery-python/issues). Community
+contributions are welcomed and encouraged.
+
+If you want to suggest a feature, you should create a GitHub issue outlining
+your feature request.
+
+If you need help, have questions, or want to participate in a forum-style
+conversation with the core developers and users of this projects, create an
+issue.
+
+Generally, use GitHub Issues for everything.
+
 ## Code Formatting
 
 ### Lint

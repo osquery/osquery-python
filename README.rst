@@ -102,9 +102,6 @@ Development
 See `CONTRIBUTING.md <https://github.com/osquery/osquery-python/blob/master/CONTRIBUTING.md>`_
 and the `osquery wiki <https://osquery.readthedocs.org>`_ for development information.
 
-If you'd like to implement new features, pick up an issue (or suggest one) via
-`GitHub Issues <https://github.com/osquery/osquery-python>`_.
-
 Packaging
 ---------
 
