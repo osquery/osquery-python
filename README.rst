@@ -40,7 +40,7 @@ example:
       def generate(self, context):
           query_data = []
 
-          for i in range(2):
+          for _ in range(2):
               row = {}
               row["foo"] = "bar"
               row["baz"] = "baz"
@@ -49,9 +49,8 @@ example:
           return query_data
 
   if __name__ == "__main__":
-      osquery.start_extension(
-        name="my_awesome_extension",
-        version="1.0.0",)
+      osquery.start_extension(name="my_awesome_extension",
+                              version="1.0.0",)
 
 This will register a table called "foobar". As you can see, the table will
 return two rows:
