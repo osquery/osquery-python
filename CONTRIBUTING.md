@@ -89,3 +89,20 @@ python setup.py build
 # test the module
 python setup.py test
 ```
+
+## Packaging
+
+We build the osquery package as a [wheel](https://pypi.python.org/pypi/wheel).
+To build the wheel, run the following from the root of this repository:
+
+
+```
+# install dependencies
+pip install -r requirements.txt
+
+# build package
+python setup.py bdist_wheel
+
+# upload the package
+twine upload dist/*
+```
