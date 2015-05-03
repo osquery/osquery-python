@@ -3,8 +3,6 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 
-# pylint: disable=too-few-public-methods
-
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -18,20 +16,6 @@ sys.path.insert(0, abspath("%s/../build/lib" % dirname(abspath(__file__))))
 
 import osquery
 
-class TestSingleton(unittest.TestCase):
-    """Tests for osquery.Singleton"""
-
-    class MockSingleton(osquery.Singleton):
-        """Mock singleton class for testing"""
-        pass
-
-    def test_singleton_creation(self):
-        """Test that two singletons are the same object"""
-        singleton_a = self.MockSingleton()
-        singleton_b = self.MockSingleton()
-        self.assertEqual(id(singleton_a), id(singleton_b))
-
-@osquery.register_plugin
 class MockTablePlugin(osquery.TablePlugin):
     """Mock table plugin for testing the table API"""
     def name(self):
@@ -54,26 +38,31 @@ class MockTablePlugin(osquery.TablePlugin):
 
         return query_data
 
-class TestExtensionManager(unittest.TestCase):
-    """Tests for osquery.ExtensionManager"""
+class TestTablePlugin(unittest.TestCase):
+    """Tests for osquery.TablePlugin"""
 
     def test_plugin_was_registered(self):
         """Tests to ensure that a plugin was registered"""
-        registry = {
-            "table": {
-                "foobar": [
-                    {
-                        "type": "TEXT",
-                        "name": "foo",
-                    },
-                    {
-                        "type": "TEXT",
-                        "name": "baz",
-                    },
-                ],
+        osquery.ExtensionManager().add_plugin(MockTablePlugin)
+        registry = osquery.ExtensionManager().registry()
+        self.assertIn("table", registry)
+        self.assertIn("foobar", registry["table"])
+
+    def test_routes_are_correct(self):
+        """Tests to ensure that a plugins routes are correct"""
+        expected = [
+            {
+                "type": "TEXT",
+                "name": "foo",
             },
-        }
-        self.assertEqual(osquery.ExtensionManager().registry(), registry)
+            {
+                "type": "TEXT",
+                "name": "baz",
+            },
+        ]
+        osquery.ExtensionManager().add_plugin(MockTablePlugin)
+        mtp = MockTablePlugin()
+        self.assertEqual(expected, mtp.routes())
 
     def test_simple_call(self):
         """Tests for the call method of osquery.TablePlugin"""
