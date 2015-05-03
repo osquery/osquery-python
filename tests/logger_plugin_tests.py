@@ -37,7 +37,7 @@ class TestLoggerPlugin(unittest.TestCase):
         test_log_string = "test_log_string"
         ext_manager.call("logger",
                          "foobar",
-                         {"string":test_log_string})
+                         {"string": test_log_string})
         mlp = MockLoggerPlugin()
         self.assertTrue(test_log_string in mlp.logs)
 
