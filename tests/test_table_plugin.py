@@ -8,11 +8,12 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from os.path import dirname, abspath
+import os
 import sys
 import unittest
 
-sys.path.insert(0, abspath("%s/../build/lib" % dirname(abspath(__file__))))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                                "../build/lib/")))
 
 import osquery
 
@@ -45,8 +46,8 @@ class TestTablePlugin(unittest.TestCase):
         """Tests to ensure that a plugin was registered"""
         osquery.ExtensionManager().add_plugin(MockTablePlugin)
         registry = osquery.ExtensionManager().registry()
-        self.assertIn("table", registry)
-        self.assertIn("foobar", registry["table"])
+        self.assertTrue("table" in registry)
+        self.assertTrue("foobar" in registry["table"])
 
     def test_routes_are_correct(self):
         """Tests to ensure that a plugins routes are correct"""
