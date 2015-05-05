@@ -8,13 +8,13 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from os.path import dirname, abspath
 import json
+import os
 import sys
 import unittest
 
-sys.path.insert(0, abspath("%s/../build/lib" % dirname(abspath(__file__))))
-
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                                "../build/lib/")))
 import osquery
 
 class MockConfigPlugin(osquery.ConfigPlugin):
@@ -49,7 +49,7 @@ class TestConfigPlugin(unittest.TestCase):
                                     {"action":"genConfig"})
         self.assertEqual(0, response.status.code)
         self.assertTrue(len(response.response) > 0)
-        self.assertIn("source_1", response.response[0])
+        self.assertTrue("source_1" in response.response[0])
 
 if __name__ == '__main__':
     unittest.main()

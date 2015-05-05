@@ -82,7 +82,10 @@ setup(name=TITLE,
       author_email="osquery@fb.com",
       url="https://osquery.io",
       license=LICENSE,
-      packages=["osquery",],
+      packages=[
+          "osquery",
+          "osquery.extensions",
+      ],
       install_requires=[
           "thrift>=0.9",
           "argparse>=1.1",
