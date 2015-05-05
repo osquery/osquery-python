@@ -17,6 +17,9 @@ the `users guide <https://osquery.readthedocs.org/>`_.
 What is osquery-python?
 -----------------------
 
+.. image:: https://travis-ci.org/osquery/osquery-python.svg?branch=master
+  :target: https://travis-ci.org/osquery/osquery-python
+
 In osquery, SQL tables, configuration retrieval, log handling, etc are implemented
 via a simple, robust plugin and extensions API. This project contains the official
 Python bindings for creating osquery extensions in Python. Consider the following
