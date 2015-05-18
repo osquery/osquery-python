@@ -27,7 +27,7 @@ example:
 
 Example walkthrough
 -------------------
-1. Launch osqueryi from a terminal window. When osqueryi is run without any
+1. Launch ``osqueryi`` from a terminal window. When osqueryi is run without any
 options it will create and connect to a unix socket file in $HOME/.osquery/shell.em.
 
 2. Copy the following code into a file named example.py
@@ -66,7 +66,7 @@ This will register a table called "foobar" that will
 return two rows.
 
 3. Run the example.py script using the --socket option to specify connecting
-to the socket file in your home directory. python example.py --socket ~/.osquery/shell.em
+to the socket file in your home directory. ``python example.py --socket ~/.osquery/shell.em``
 
 4. In the running osqueryi window, enter the follow query:
 
