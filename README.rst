@@ -29,6 +29,7 @@ Example walkthrough
 -------------------
 1. Launch osqueryi from a terminal window. When osqueryi is run without any
 options it will create and connect to a unix socket file in $HOME/.osquery/shell.em.
+
 2. Copy the following code into a file named example.py
 
 .. code-block:: python
