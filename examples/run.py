@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-simple script which runs a query from stdin
+simple script which runs a query from the command-line
 """
 
 import sys
