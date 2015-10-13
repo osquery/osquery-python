@@ -9,7 +9,12 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import argparse
+import shutil
 import socket
+import subprocess
+import sys
+import tempfile
+import time
 
 from thrift.protocol import TBinaryProtocol
 from thrift.server import TServer
@@ -20,6 +25,98 @@ from osquery.extensions.ttypes import ExtensionException, InternalExtensionInfo
 from osquery.extensions.Extension import Processor
 from osquery.extension_client import ExtensionClient, DEFAULT_SOCKET_PATH
 from osquery.extension_manager import ExtensionManager
+
+DARWIN_BINARY_PATH = "/usr/local/bin/osqueryd"
+LINUX_BINARY_PATH = "/usr/bin/osqueryd"
+
+class SpawnInstance(object):
+    """Spawn a standalone osquery instance"""
+
+    """The osquery process instance."""
+    instance = None
+    """The extension client connection attached to the instance."""
+    connection = None
+    _socket = None
+
+    def __init__(self, path=None):
+        """
+        Keyword arguments:
+        path -- the path to and osqueryd binary to spawn
+        """
+        if path is None:
+            # Darwin is special and must have binaries installed in /usr/local.
+            if sys.platform == "darwin":
+                self.path = DARWIN_BINARY_PATH
+            else:
+                self.path = LINUX_BINARY_PATH
+        else:
+            self.path = path
+        self._socket = tempfile.mkstemp(prefix="pyosqsock")
+        self._pidfile = tempfile.mkstemp(prefix="pyosqpid")
+        with open(self._pidfile[1], "w") as fh:
+            fh.write("100000")
+        self._dbpath = tempfile.mkdtemp(prefix="pyoqsdb")
+
+    def __del__(self):
+        if self.connection is not None:
+            self.connection.close()
+        if self.instance is not None:
+            self.instance.kill()
+            shutil.rmtree(self._dbpath)
+            self.instance.wait()
+
+    def open(self, timeout=2, interval=0.01):
+        """
+        Start the instance process and open an extension client
+
+        Keyword arguments:
+        timeout -- maximum number of seconds to wait for client
+        interval -- seconds between client open attempts
+        """
+        proc = [
+            self.path,
+            "--extensions_socket",
+            self._socket[1],
+            "--database_path",
+            # This is a temporary directory, there is not FD tuple.
+            self._dbpath,
+            "--pidfile",
+            self._pidfile[1],
+            "--disable_watchdog",
+            "--disable_logging",
+            "--config_path",
+            "/dev/null",
+        ]
+        self.instance = subprocess.Popen(proc,
+            stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE)
+        self.connection = ExtensionClient(path=self._socket[1])
+        if not self.is_running():
+            raise Exception("Cannot start process from path: %s" % (self.path))
+
+        # Attempt to open the extension client.
+        delay = 0
+        while delay < timeout:
+            try:
+                self.connection.open()
+                return
+            except:
+                time.sleep(interval)
+                delay += interval
+        self.instance.kill()
+        self.instance = None
+        raise Exception("Cannot open socket: %s" % (self._socket[1]))
+
+    def is_running(self):
+        """Check if the instance has spawned."""
+        if self.instance is None:
+            return False
+        return self.instance.poll() is None
+
+    @property
+    def client(self):
+        """The extension client."""
+        return self.connection.extension_manager_client()
 
 def parse_cli_params():
     """Parse CLI parameters passed to the extension executable"""
