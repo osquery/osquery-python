@@ -25,6 +25,13 @@ via a simple, robust plugin and extensions API. This project contains the offici
 Python bindings for creating osquery extensions in Python. Consider the following
 example:
 
+Example walkthrough
+-------------------
+1. Launch ``osqueryi`` from a terminal window. When osqueryi is run without any
+options it will create and connect to a unix socket file in $HOME/.osquery/shell.em.
+
+2. Copy the following code into a file named example.py
+
 .. code-block:: python
 
   import osquery
@@ -55,8 +62,13 @@ example:
       osquery.start_extension(name="my_awesome_extension",
                               version="1.0.0",)
 
-This will register a table called "foobar". As you can see, the table will
-return two rows:
+This will register a table called "foobar" that will
+return two rows.
+
+3. Run the example.py script using the --socket option to specify connecting
+to the socket file in your home directory. ``python example.py --socket ~/.osquery/shell.em``
+
+4. In the running osqueryi window, enter the follow query:
 
 .. code-block:: none
 
@@ -68,6 +80,7 @@ return two rows:
   | bar | baz |
   +-----+-----+
   osquery>
+
 
 
 This is obviously a contrived example, but it's easy to imagine the
