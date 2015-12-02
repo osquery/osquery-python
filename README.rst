@@ -81,6 +81,25 @@ Extensions are the core way that you can extend and customize osquery. At
 Facebook, we use extensions extensively to implement many plugins that take
 advantage of internal APIs and tools.
 
+Execute queries in Python
+-------------------------
+
+The same Thirft bindings can be used to create a Python client for the osqueryd or
+osqueryi's extension socket. There are helper classes provided that spawn an ephemeral
+osquery process for consecutive or long running client instances.
+
+.. code-block:: python
+
+  import osquery
+
+  if __name__ == "__main__":
+      # Spawn an osquery process using an ephemeral extension socket.
+      instance = osquery.SpawnInstance()
+      instance.open()
+  
+      # Issues queries and call osquery Thrift APIs.
+      instance.client.query("select timestamp from time")
+
 Install
 -------
 
