@@ -60,8 +60,10 @@ class TablePlugin(BasePlugin):
         routes = []
         for column in self.columns():
             route = {
+                "id": "column",
                 "name": column.name,
                 "type": column.type,
+                "op": "0",
             }
             routes.append(route)
         return routes
