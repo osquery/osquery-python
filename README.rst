@@ -84,7 +84,7 @@ advantage of internal APIs and tools.
 Execute queries in Python
 -------------------------
 
-The same Thirft bindings can be used to create a Python client for the osqueryd or
+The same Thrift bindings can be used to create a Python client for the osqueryd or
 osqueryi's extension socket. There are helper classes provided that spawn an ephemeral
 osquery process for consecutive or long running client instances.
 
