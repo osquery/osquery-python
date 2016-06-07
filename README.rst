@@ -55,6 +55,24 @@ example:
       osquery.start_extension(name="my_awesome_extension",
                               version="1.0.0",)
 
+To test this code start an osquery shell:
+
+.. code-block:: none
+
+  osqueryi --nodisable_extensions
+  osquery> select value from osquery_flags where name = 'extensions_socket';
+  +-----------------------------------+
+  | value                             |
+  +-----------------------------------+
+  | /Users/USERNAME/.osquery/shell.em |
+  +-----------------------------------+
+
+Then start the Python extension:
+
+.. code-block:: none
+
+  python ./my_table_plugin.py --socket /Users/USERNAME/.osquery/shell.em
+
 This will register a table called "foobar". As you can see, the table will
 return two rows:
 
