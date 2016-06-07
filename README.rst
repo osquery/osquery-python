@@ -92,7 +92,7 @@ This is obviously a contrived example, but it's easy to imagine the
 possibilities.
 
 Using the instructions found on the `wiki
-<https://osquery.readthedocs.org/en/latest/development/osquery-sdk/#extensions>`_,
+<https://osquery.readthedocs.org/en/latest/development/osquery-sdk/>`_,
 you can easily deploy your extension with an existing osquery deployment.
 
 Extensions are the core way that you can extend and customize osquery. At
