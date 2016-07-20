@@ -8,6 +8,8 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import sys
+
 from osquery.extensions.Extension import Iface
 from osquery.extensions.ttypes import ExtensionResponse, ExtensionStatus
 from osquery.singleton import Singleton
@@ -59,6 +61,10 @@ class ExtensionManager(Singleton, Iface):
             self._plugins[obj.registry_name()] = {}
         if obj.name() not in self._plugins[obj.registry_name()]:
             self._plugins[obj.registry_name()][obj.name()] = obj
+
+    def shutdown(self):
+        """The osquery extension manager requested a shutdown"""
+        sys.exit(0)
 
     def registry(self):
         """Accessor for the internal _registry member variable"""

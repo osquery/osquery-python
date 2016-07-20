@@ -53,10 +53,14 @@ class TestTablePlugin(unittest.TestCase):
         """Tests to ensure that a plugins routes are correct"""
         expected = [
             {
+                "id": "column",
+                "op": "0",
                 "type": "TEXT",
                 "name": "foo",
             },
             {
+                "id": "column",
+                "op": "0",
                 "type": "TEXT",
                 "name": "baz",
             },
