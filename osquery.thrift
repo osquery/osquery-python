@@ -1,5 +1,4 @@
 namespace cpp osquery.extensions
-namespace py osquery.extensions
 
 /// Registry operations use a registry name, plugin name, request/response.
 typedef map<string, string> ExtensionPluginRequest
@@ -69,6 +68,8 @@ service Extension {
     2:string item,
     /// The thrift-equivilent of an osquery::PluginRequest.
     3:ExtensionPluginRequest request),
+  /// Request that an extension shutdown (does not apply to managers).
+  void shutdown(),
 }
 
 /// The extension manager is run by the osquery core process.

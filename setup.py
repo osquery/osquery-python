@@ -25,8 +25,8 @@ class GenerateThriftCommand(Command):
     def run(self):
         """Run the command"""
         system("thrift -gen py -out . osquery.thrift")
-        system("rm osquery/extensions/*-remote")
-        system("rm __init__.py")
+        system("rm ./osquery/extensions/*-remote")
+        system("rm ./__init__.py")
 
 class LintCommand(Command):
     """Run pylint on implementation and test code"""
