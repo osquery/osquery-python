@@ -6,13 +6,7 @@ cache:
 python:
   - 2.6
   - 2.7
-  - 3.2
-  - 3.3
-  - 3.4
-  - 3.5
   - pypy
-  - pypy3
-  - nightly
 install:
   - pip install -r requirements.txt
 script:
