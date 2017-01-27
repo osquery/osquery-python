@@ -8,6 +8,8 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import time
+
 from thrift.protocol import TBinaryProtocol
 from thrift.transport import TSocket
 from thrift.transport import TTransport
@@ -41,9 +43,18 @@ class ExtensionClient(object):
         if self._transport:
             self._transport.close()
 
-    def open(self):
+    def open(self, timeout=1, interval=0.2):
         """Attempt to open the UNIX domain socket"""
-        self._transport.open()
+        delay = 0
+        while delay < timeout:
+            try:
+                self._transport.open()
+                return True
+            except TTransport.TTransportException:
+                pass
+            delay += interval
+            time.sleep(interval)
+        return False
 
     def extension_manager_client(self):
         """Return an extension manager (osquery core) client."""

@@ -9,11 +9,13 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import argparse
+import os
 import shutil
 import socket
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 
 from thrift.protocol import TBinaryProtocol
@@ -144,6 +146,19 @@ def parse_cli_params():
         help="Enable verbose informational messages")
     return parser.parse_args()
 
+def start_watcher(client, interval):
+    """Ping the osquery extension manager to detect dirty shutdowns."""
+    try:
+        while True:
+            status = client.extension_manager_client().ping()
+            if status.code is not 0:
+                break
+            time.sleep(interval)
+    except socket.error:
+        # The socket was torn down.
+        pass
+    os._exit(0)
+
 def start_extension(name="<unknown>", version="0.0.0", sdk_version="1.8.0",
                     min_sdk_version="1.8.0"):
     """Start your extension by communicating with osquery core and starting
@@ -157,7 +172,8 @@ def start_extension(name="<unknown>", version="0.0.0", sdk_version="1.8.0",
     """
     args = parse_cli_params()
     client = ExtensionClient(path=args.socket)
-    client.open()
+    if not client.open(args.timeout):
+        return
     ext_manager = ExtensionManager()
 
     # try connecting to the desired osquery core extension manager socket
@@ -183,6 +199,11 @@ def start_extension(name="<unknown>", version="0.0.0", sdk_version="1.8.0",
             code=1,
             message=status.message,
         )
+
+    # Start a watchdog thread to monitor the osquery process.
+    rt = threading.Thread(target=start_watcher, args=(client, args.interval))
+    rt.daemon = True
+    rt.start()
 
     # start a thrift server listening at the path dictated by the uuid returned
     # by the osquery core extension manager

@@ -8,11 +8,18 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import sys
+import os
+import threading
+import time
 
 from osquery.extensions.Extension import Iface
 from osquery.extensions.ttypes import ExtensionResponse, ExtensionStatus
 from osquery.singleton import Singleton
+
+def shutdown_request(code, timeout=1):
+    """A delayed shutdown request."""
+    time.sleep(timeout)
+    os._exit(code)
 
 class ExtensionManager(Singleton, Iface):
     """The thrift server for handling extension requests
@@ -64,7 +71,10 @@ class ExtensionManager(Singleton, Iface):
 
     def shutdown(self):
         """The osquery extension manager requested a shutdown"""
-        sys.exit(0)
+        rt = threading.Thread(target=shutdown_request, args=(0,))
+        rt.daemon = True
+        rt.start()
+        return ExtensionStatus(code=0, message="OK")
 
     def registry(self):
         """Accessor for the internal _registry member variable"""
