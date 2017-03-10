@@ -27,6 +27,8 @@ example:
 
 .. code-block:: python
 
+  #!/usr/bin/env python
+
   import osquery
 
   @osquery.register_plugin
@@ -72,6 +74,12 @@ Then start the Python extension:
 .. code-block:: none
 
   python ./my_table_plugin.py --socket /Users/USERNAME/.osquery/shell.em
+
+Alternatively, you can also autoload your extension when starting an osquery shell:
+
+.. code-block:: none
+
+  osqueryi --extension path_to_my_table_plugin.py
 
 This will register a table called "foobar". As you can see, the table will
 return two rows:
