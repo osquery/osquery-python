@@ -73,7 +73,7 @@ Then start the Python extension:
 
 .. code-block:: none
 
-  ./my_table_plugin.py --socket /Users/USERNAME/.osquery/shell.em
+  python ./my_table_plugin.py --socket /Users/USERNAME/.osquery/shell.em
 
 Alternatively, you can also autoload your extension when starting an osquery shell:
 
