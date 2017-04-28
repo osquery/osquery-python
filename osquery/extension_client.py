@@ -18,6 +18,9 @@ from thrift.protocol import TBinaryProtocol
 from thrift.transport import TSocket
 from thrift.transport import TTransport
 
+# We bootleg our own version of Windows pipe coms
+from osquery.TPipe import TPipe
+
 from osquery.extensions.ExtensionManager import Client
 
 if sys.platform == "win32":
@@ -41,8 +44,7 @@ class ExtensionClient(object):
         self.path = path
         sock = None
         if sys.platform == "win32":
-            # NOTE: This doesn't exist in Thrift.
-            sock = TPipe.TPipe(named_pipe=self.path)
+            sock = TPipe(pipe=self.path)
         else:
             if uuid:
                 self.path += ".%s" % str(uuid)

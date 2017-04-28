@@ -11,6 +11,8 @@ from __future__ import unicode_literals
 import argparse
 import logging
 import os
+import random
+import shutil
 import socket
 import subprocess
 import sys
@@ -26,6 +28,8 @@ from thrift.server import TServer
 from thrift.transport import TSocket
 from thrift.transport import TTransport
 
+# We bootleg our own version of Windows pipe coms
+from osquery.TPipe import TPipe
 from osquery.extensions.ttypes import ExtensionException, InternalExtensionInfo
 from osquery.extensions.Extension import Processor
 from osquery.extension_client import ExtensionClient, DEFAULT_SOCKET_PATH
@@ -64,23 +68,17 @@ class SpawnInstance(object):
         # Disable logging for the thrift module (can be loud).
         logging.getLogger('thrift').addHandler(logging.NullHandler())
         if sys.platform == "win32":
-            pipeName = r'\\.\pipe\osquery.em'
-            # This can throw if a system exhausts it's pipes, which happens
-            # with chrome or very busy systems.
-            pipe = win32pipe.CreateNamedPipe(
-                pipeName,
-                win32pipe.PIPE_ACCESS_DUPLEX,
-                win32pipe.PIPE_TYPE_MESSAGE | win32pipe.PIPE_WAIT | win32pipe.PIPE_READMODE_MESSAGE | win32pipe.PIPE_NOWAIT,
-                win32pipe.PIPE_UNLIMITED_INSTANCES, 65536, 65536,
-                0,
-                None)
-            self._socket = (pipe, pipeName)
+            # Windows fails to spawn if the pidfile already exists
+            # Issue:
+            self._pidfile = (None, tempfile.gettempdir() + '\\pyosqpid-' + str(random.randint(10000,20000)))
+            pipeName = r'\\.\pipe\pyosqsock-' + str(random.randint(10000,20000))
+            self._socket = (None, pipeName)
         else:
             self._socket = tempfile.mkstemp(prefix="pyosqsock")
+            self._pidfile = tempfile.mkstemp(prefix="pyosqpid")
+            with open(self._pidfile[1], "w") as fh:
+                fh.write("100000")
 
-        self._pidfile = tempfile.mkstemp(prefix="pyosqpid")
-        with open(self._pidfile[1], "w") as fh:
-            fh.write("100000")
         self._dbpath = tempfile.mkdtemp(prefix="pyoqsdb")
 
     def __del__(self):
@@ -89,8 +87,6 @@ class SpawnInstance(object):
         if self.instance is not None:
             self.instance.kill()
             self.instance.wait()
-        if sys.platform == "win32":
-            win32pipe.DisconnectNamedPipe(self._socket[0])
 
     def open(self, timeout=2, interval=0.01):
         """
@@ -111,6 +107,7 @@ class SpawnInstance(object):
             "--config_path",
             "/dev/null",
         ]
+        print('[+] Spawning instance: {}'.format(proc))
         self.instance = subprocess.Popen(proc,
             stdin=subprocess.PIPE, stdout=subprocess.PIPE,
             stderr=subprocess.PIPE)
@@ -122,14 +119,19 @@ class SpawnInstance(object):
         delay = 0
         while delay < timeout:
             try:
+                print('A1')
                 self.connection.open()
+                print('A2')
                 return
             except Exception:
                 time.sleep(interval)
                 delay += interval
         self.instance.kill()
         self.instance = None
-        raise Exception("Cannot open socket: %s" % (self._socket[1]))
+        if sys.platform == "win32":
+            raise Exception("Cannot open pipe: %s" % (self._socket[1]))
+        else:
+            raise Exception("Cannot open socket: %s" % (self._socket[1]))
 
     def is_running(self):
         """Check if the instance has spawned."""
@@ -197,7 +199,8 @@ def start_extension(name="<unknown>", version="0.0.0", sdk_version="1.8.0",
     # Disable logging for the thrift module (can be loud).
     logging.getLogger('thrift').addHandler(logging.NullHandler())
 
-    client = ExtensionClient(path=args.socket)
+    #client = ExtensionClient(path=args.socket) # TODO: Uncomment
+    client = ExtensionClient(r'\\.\pipe\shell.em')
     if not client.open(args.timeout):
         if args.verbose:
             message = "Could not open socket %s" % args.socket
