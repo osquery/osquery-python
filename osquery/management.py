@@ -30,6 +30,7 @@ from osquery.extension_manager import ExtensionManager
 
 DARWIN_BINARY_PATH = "/usr/local/bin/osqueryd"
 LINUX_BINARY_PATH = "/usr/bin/osqueryd"
+WINDOWS_BINARY_PATH = "C:\\ProgramData\\osquery\\osqueryd\\osqueryd.exe"
 
 class SpawnInstance(object):
     """Spawn a standalone osquery instance"""
@@ -49,6 +50,8 @@ class SpawnInstance(object):
             # Darwin is special and must have binaries installed in /usr/local.
             if sys.platform == "darwin":
                 self.path = DARWIN_BINARY_PATH
+            elif sys.platform == "win32":
+                self.path = WINDOWS_BINARY_PATH
             else:
                 self.path = LINUX_BINARY_PATH
         else:
