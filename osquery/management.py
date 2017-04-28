@@ -18,6 +18,9 @@ import tempfile
 import threading
 import time
 
+if sys.platform == "win32":
+    import win32pipe
+
 from thrift.protocol import TBinaryProtocol
 from thrift.server import TServer
 from thrift.transport import TSocket
@@ -60,6 +63,25 @@ class SpawnInstance(object):
 
         # Disable logging for the thrift module (can be loud).
         logging.getLogger('thrift').addHandler(logging.NullHandler())
+        if sys.platform == "win32":
+            pipeName = r'\\.\pipe\osquery.em'
+            # This can throw if a system exhausts it's pipes, which happens
+            # with chrome or very busy systems.
+            pipe = win32pipe.CreateNamedPipe(
+                pipeName,
+                win32pipe.PIPE_ACCESS_DUPLEX,
+                win32pipe.PIPE_TYPE_MESSAGE | win32pipe.PIPE_WAIT | win32pipe.PIPE_READMODE_MESSAGE | win32pipe.PIPE_NOWAIT,
+                win32pipe.PIPE_UNLIMITED_INSTANCES, 65536, 65536,
+                0,
+                None)
+            self._socket = (pipe, pipeName)
+        else:
+            self._socket = tempfile.mkstemp(prefix="pyosqsock")
+
+        self._pidfile = tempfile.mkstemp(prefix="pyosqpid")
+        with open(self._pidfile[1], "w") as fh:
+            fh.write("100000")
+        self._dbpath = tempfile.mkdtemp(prefix="pyoqsdb")
 
     def __del__(self):
         if self.connection is not None:
@@ -67,6 +89,8 @@ class SpawnInstance(object):
         if self.instance is not None:
             self.instance.kill()
             self.instance.wait()
+        if sys.platform == "win32":
+            win32pipe.DisconnectNamedPipe(self._socket[0])
 
     def open(self, timeout=2, interval=0.01):
         """
@@ -175,6 +199,12 @@ def start_extension(name="<unknown>", version="0.0.0", sdk_version="1.8.0",
 
     client = ExtensionClient(path=args.socket)
     if not client.open(args.timeout):
+        if args.verbose:
+            message = "Could not open socket %s" % args.socket
+            raise ExtensionException(
+                code=1,
+                message=message,
+            )
         return
     ext_manager = ExtensionManager()
 

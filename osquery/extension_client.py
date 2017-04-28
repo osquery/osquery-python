@@ -9,6 +9,10 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import time
+import sys
+
+if sys.platform == "win32":
+    import win32pipe
 
 from thrift.protocol import TBinaryProtocol
 from thrift.transport import TSocket
@@ -16,7 +20,10 @@ from thrift.transport import TTransport
 
 from osquery.extensions.ExtensionManager import Client
 
-DEFAULT_SOCKET_PATH = "/var/osquery/osquery.em"
+if sys.platform == "win32":
+    DEFAULT_SOCKET_PATH = r'\\.\pipe\osquery.em'
+else:
+    DEFAULT_SOCKET_PATH = "/var/osquery/osquery.em"
 """The default path for osqueryd sockets"""
 
 class ExtensionClient(object):
@@ -32,9 +39,14 @@ class ExtensionClient(object):
         uuid -- the additional UUID to use when constructing the socket path
         """
         self.path = path
-        if uuid:
-            self.path += ".%s" % str(uuid)
-        sock = TSocket.TSocket(unix_socket=self.path)
+        sock = None
+        if sys.platform == "win32":
+            # NOTE: This doesn't exist in Thrift.
+            sock = TPipe.TPipe(named_pipe=self.path)
+        else:
+            if uuid:
+                self.path += ".%s" % str(uuid)
+            sock = TSocket.TSocket(unix_socket=self.path)
         self._transport = TTransport.TBufferedTransport(sock)
         self._protocol = TBinaryProtocol.TBinaryProtocol(self._transport)
 
