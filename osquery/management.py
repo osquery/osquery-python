@@ -30,6 +30,7 @@ from thrift.transport import TTransport
 
 # We bootleg our own version of Windows pipe coms
 from osquery.TPipe import TPipe
+from osquery.TPipe import TPipeServer
 from osquery.extensions.ttypes import ExtensionException, InternalExtensionInfo
 from osquery.extensions.Extension import Processor
 from osquery.extension_client import ExtensionClient, DEFAULT_SOCKET_PATH
@@ -201,6 +202,7 @@ def start_extension(name="<unknown>", version="0.0.0", sdk_version="1.8.0",
 
     #client = ExtensionClient(path=args.socket) # TODO: Uncomment
     client = ExtensionClient(r'\\.\pipe\shell.em')
+    
     if not client.open(args.timeout):
         if args.verbose:
             message = "Could not open socket %s" % args.socket
@@ -244,8 +246,14 @@ def start_extension(name="<unknown>", version="0.0.0", sdk_version="1.8.0",
     # by the osquery core extension manager
     ext_manager.uuid = status.uuid
     processor = Processor(ext_manager)
-    transport = transport = TSocket.TServerSocket(
-        unix_socket=args.socket + "." + str(status.uuid))
+
+    transport = None
+    if sys.platform == 'win32':
+        transport = TPipeServer(args.socket + "-" + str(status.uuid))
+    else:
+        transport = TSocket.TServerSocket(
+            unix_socket=args.socket + "." + str(status.uuid))
+
     tfactory = TTransport.TBufferedTransportFactory()
     pfactory = TBinaryProtocol.TBinaryProtocolFactory()
     server = TServer.TSimpleServer(processor, transport, tfactory, pfactory)

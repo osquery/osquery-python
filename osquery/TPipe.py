@@ -6,8 +6,11 @@ import sys
 import win32pipe
 import win32file
 import win32api
+import win32security
 
-from thrift.transport.TTransport import TTransportBase, TTransportException, TServerTransportBase
+from thrift.transport.TTransport import TTransportBase
+from thrift.transport.TTransport import TTransportException
+from thrift.transport.TTransport import TServerTransportBase
 
 logger = logging.getLogger(__name__)
 
@@ -46,37 +49,28 @@ class TPipe(TPipeBase):
         if self._handle != None:
             return
         handle = None
-        x = ''
         try:
             while True:
                 handle = win32file.CreateFile(self._pipe, win32file.GENERIC_READ | win32file.GENERIC_WRITE, 0, None, win32file.OPEN_EXISTING, win32file.FILE_FLAG_OVERLAPPED | win32file.FILE_FLAG_WRITE_THROUGH, None)
 
-                print('A6')
                 if handle.handle != INVALID_HANDLE_VALUE:
-                    print('A7')
                     break
 
                 err = win32api.GetLastError()
                 if err != ERROR_PIPE_BUSY:
-                    print('A8')
                     raise TTransportException(TTransportException.NOT_OPEN, "Failed to open connection to pipe: {}".format(err))
 
                 # Wait for the connection to the pipe
-                print('A3')
                 win32pipe.WaitNamedPipe(self._pipe, self._timeout * 1000)
-                print('A4')
 
         except Exception as e:
-            print('A8')
-            print('[-] Failed to connect to pipe: {}'.format(e))
             raise TTransportException(TTransportException.NOT_OPEN, "Failed to open connection to pipe: {}".format(err))
-        print('E')
         self._handle = handle
         return
 
     # TODO: GetOverlappedResult
     def read(self, sz):
-        if not isOpen():
+        if not self.isOpen():
             raise TTransportException(type=TTransportException.NOT_OPEN,
                                       message='Called read on non-open pipe')
 
@@ -87,11 +81,13 @@ class TPipe(TPipeBase):
         except Exception as e:
             raise TTransportException(type=TTransportException.UNKNOWN,
                                       message='Failed to read from named pipe')
+        print('[+] read: {}'.format(buff))
         return buff
 
     # TODO: GetOverlappedResult
     def write(self, buff):
-        if not self.handle:
+        print('[+] write: {}'.format(buff))
+        if not self._handle:
             raise TTransportException(type=TTransportException.NOT_OPEN,
                                       message='Transport not open')
 
@@ -109,3 +105,35 @@ class TPipe(TPipeBase):
             self._handle.close()
             win32pipe.DisconnectNamedPipe(self._pipe)
             self._handle = None
+
+
+class TPipeServer(TPipeBase, TServerTransportBase):
+    """Pipe implementation of TServerTransport base."""
+
+    def __init__(self, pipe, buffsize=4096, maxconns=255):
+        self._pipe = pipe
+        self._buffsize = buffsize
+        self._maxconns = maxconns
+        self._handle = None
+
+    def createNamedPipe(self):
+        saAttr = win32security.SECURITY_ATTRIBUTES()
+        saAttr.bInheritHandle = 0
+
+        self._handle = win32pipe.CreateNamedPipe(self._pipe, win32pipe.PIPE_ACCESS_DUPLEX, win32pipe.PIPE_TYPE_MESSAGE | win32pipe.PIPE_WAIT, self._maxconns, self._buffsize, self._buffsize, 0, saAttr)
+
+        err = win32api.GetLastError()
+        if self._handle.handle == INVALID_HANDLE_VALUE:
+            raise TTransportException(type=TTransportException.NOT_OPEN,
+                                      message='TCreateNamedPipe failed: {}'.format(err))
+
+    def initiateNamedConnect(self):
+        if self._handle == None:
+            self.createNamedPipe()
+
+    def listen(self):
+        pass
+
+    def accept(self):
+        if self._handle == None:
+            self.createNamedPipe()

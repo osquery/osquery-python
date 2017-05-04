@@ -60,6 +60,7 @@ class ExtensionClient(object):
     def open(self, timeout=1, interval=0.2):
         """Attempt to open the UNIX domain socket"""
         delay = 0
+
         while delay < timeout:
             try:
                 self._transport.open()
