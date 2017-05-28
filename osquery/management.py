@@ -9,6 +9,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import argparse
+import logging
 import os
 import shutil
 import socket
@@ -54,17 +55,15 @@ class SpawnInstance(object):
         else:
             self.path = path
         self._socket = tempfile.mkstemp(prefix="pyosqsock")
-        self._pidfile = tempfile.mkstemp(prefix="pyosqpid")
-        with open(self._pidfile[1], "w") as fh:
-            fh.write("100000")
-        self._dbpath = tempfile.mkdtemp(prefix="pyoqsdb")
+
+        # Disable logging for the thrift module (can be loud).
+        logging.getLogger('thrift').addHandler(logging.NullHandler())
 
     def __del__(self):
         if self.connection is not None:
             self.connection.close()
         if self.instance is not None:
             self.instance.kill()
-            shutil.rmtree(self._dbpath)
             self.instance.wait()
 
     def open(self, timeout=2, interval=0.01):
@@ -79,13 +78,10 @@ class SpawnInstance(object):
             self.path,
             "--extensions_socket",
             self._socket[1],
-            "--database_path",
-            # This is a temporary directory, there is not FD tuple.
-            self._dbpath,
-            "--pidfile",
-            self._pidfile[1],
+            "--disable_database",
             "--disable_watchdog",
             "--disable_logging",
+            "--ephemeral",
             "--config_path",
             "/dev/null",
         ]
@@ -133,12 +129,12 @@ def parse_cli_params():
     parser.add_argument(
         "--timeout",
         type=int,
-        default=0,
+        default=1,
         help="Seconds to wait for autoloaded extensions")
     parser.add_argument(
         "--interval",
         type=int,
-        default=0,
+        default=1,
         help="Seconds delay between connectivity checks")
     parser.add_argument(
         "--verbose",
@@ -171,6 +167,10 @@ def start_extension(name="<unknown>", version="0.0.0", sdk_version="1.8.0",
     min_sdk_version -- the minimum version of the osquery SDK that you can use
     """
     args = parse_cli_params()
+
+    # Disable logging for the thrift module (can be loud).
+    logging.getLogger('thrift').addHandler(logging.NullHandler())
+
     client = ExtensionClient(path=args.socket)
     if not client.open(args.timeout):
         return
