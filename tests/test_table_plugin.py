@@ -26,6 +26,7 @@ class MockTablePlugin(osquery.TablePlugin):
         return [
             osquery.TableColumn(name="foo", type=osquery.STRING),
             osquery.TableColumn(name="baz", type=osquery.STRING),
+            osquery.TableColumn(name="int", type=osquery.INTEGER),
         ]
 
     def generate(self, context):
@@ -35,6 +36,7 @@ class MockTablePlugin(osquery.TablePlugin):
             row = {}
             row["foo"] = "bar"
             row["baz"] = "baz"
+            row["int"] = 42
             query_data.append(row)
 
         return query_data
@@ -64,6 +66,12 @@ class TestTablePlugin(unittest.TestCase):
                 "type": "TEXT",
                 "name": "baz",
             },
+            {
+                "id": "column",
+                "op": "0",
+                "type": "INTEGER",
+                "name": "int",
+            },
         ]
         osquery.ExtensionManager().add_plugin(MockTablePlugin)
         mtp = MockTablePlugin()
@@ -77,10 +85,12 @@ class TestTablePlugin(unittest.TestCase):
             {
                 "foo": "bar",
                 "baz": "baz",
+                "int": "42",
             },
             {
                 "foo": "bar",
                 "baz": "baz",
+                "int": "42",
             },
         ]
         self.assertEqual(results.response, expected)
