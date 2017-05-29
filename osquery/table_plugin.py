@@ -13,6 +13,7 @@ from __future__ import unicode_literals
 from abc import ABCMeta, abstractmethod
 from collections import namedtuple
 import json
+import logging
 
 from osquery.extensions.ttypes import ExtensionResponse, ExtensionStatus
 from osquery.plugin import BasePlugin
@@ -38,13 +39,24 @@ class TablePlugin(BasePlugin):
             ctx = {}
             if "context" in context:
                 ctx = json.dumps(context["context"])
+            rows = self.generate(ctx)
+            for i, row in enumerate(rows):
+                for key, value in row.items():
+                    if not isinstance(value, basestring):
+                        try:
+                            rows[i][key] = str(value)
+                        except ValueError as e:
+                            rows[i][key] = ''
+                            logging.error("Cannot convert key %s: %s" % (
+                                i, key, str(e)))
             return ExtensionResponse(
                 status=ExtensionStatus(code=0, message="OK",),
-                response=self.generate(ctx),)
+                response=rows)
         elif context["action"] == "columns":
             return ExtensionResponse(
                 status=ExtensionStatus(code=0, message="OK",),
                 response=self.routes(),)
+        return ExtensionResponse(code=1, message="Unknown action",)
 
     def registry_name(self):
         """The name of the registry type for table plugins.
