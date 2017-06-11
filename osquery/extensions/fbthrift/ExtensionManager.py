@@ -12,7 +12,7 @@ from thrift.Thrift import *
 from thrift.protocol.TProtocol import TProtocolException
 
 
-import osquery.extensions.Extension
+from osquery.extensions import Extension
 from .ttypes import *
 from thrift.Thrift import TProcessor
 import pprint
@@ -32,7 +32,7 @@ UTF8STRINGS = bool(0) or sys.version_info.major >= 3
 
 from thrift.util.Decorators import *
 
-class Iface(osquery.extensions.Extension.Iface):
+class Iface(Extension.Iface):
   def extensions(self, ):
     pass
 
@@ -69,7 +69,7 @@ class Iface(osquery.extensions.Extension.Iface):
     pass
 
 
-class ContextIface(osquery.extensions.Extension.ContextIface):
+class ContextIface(Extension.ContextIface):
   def extensions(self, handler_ctx, ):
     pass
 
@@ -1425,7 +1425,7 @@ def getQueryColumns_result__init__(self, success=None,):
 
 getQueryColumns_result.__init__ = getQueryColumns_result__init__
 
-class Client(osquery.extensions.Extension.Client, Iface):
+class Client(Extension.Client, Iface):
   def __enter__(self):
     return self
 
@@ -1435,7 +1435,7 @@ class Client(osquery.extensions.Extension.Client, Iface):
       self._oprot.trans.close()
 
   def __init__(self, iprot, oprot=None):
-    osquery.extensions.Extension.Client.__init__(self, iprot, oprot)
+    Extension.Client.__init__(self, iprot, oprot)
 
   def extensions(self, ):
     self.send_extensions()
@@ -1610,11 +1610,11 @@ class Client(osquery.extensions.Extension.Client, Iface):
     raise TApplicationException(TApplicationException.MISSING_RESULT, "getQueryColumns failed: unknown result");
 
 
-class Processor(osquery.extensions.Extension.Processor, Iface, TProcessor):
+class Processor(Extension.Processor, Iface, TProcessor):
   _onewayMethods = ()
 
   def __init__(self, handler):
-    osquery.extensions.Extension.Processor.__init__(self, handler)
+    Extension.Processor.__init__(self, handler)
     self._processMap["extensions"] = Processor.process_extensions
     self._processMap["options"] = Processor.process_options
     self._processMap["registerExtension"] = Processor.process_registerExtension
@@ -1624,7 +1624,7 @@ class Processor(osquery.extensions.Extension.Processor, Iface, TProcessor):
 
   def onewayMethods(self):
     l = []
-    l.extend(osquery.extensions.Extension.Processor.onewayMethods(self))
+    l.extend(Extension.Processor.onewayMethods(self))
     l.extend(Processor._onewayMethods)
     return tuple(l)
 
@@ -1699,11 +1699,11 @@ class Processor(osquery.extensions.Extension.Processor, Iface, TProcessor):
 
 Iface._processor_type = Processor
 
-class ContextProcessor(osquery.extensions.Extension.ContextProcessor, ContextIface, TProcessor):
+class ContextProcessor(Extension.ContextProcessor, ContextIface, TProcessor):
   _onewayMethods = ()
 
   def __init__(self, handler):
-    osquery.extensions.Extension.ContextProcessor.__init__(self, handler)
+    Extension.ContextProcessor.__init__(self, handler)
     self._processMap["extensions"] = ContextProcessor.process_extensions
     self._processMap["options"] = ContextProcessor.process_options
     self._processMap["registerExtension"] = ContextProcessor.process_registerExtension
@@ -1713,7 +1713,7 @@ class ContextProcessor(osquery.extensions.Extension.ContextProcessor, ContextIfa
 
   def onewayMethods(self):
     l = []
-    l.extend(osquery.extensions.Extension.ContextProcessor.onewayMethods(self))
+    l.extend(Extension.ContextProcessor.onewayMethods(self))
     l.extend(ContextProcessor._onewayMethods)
     return tuple(l)
 
