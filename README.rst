@@ -129,21 +129,11 @@ osquery process for consecutive or long running client instances.
 Install
 -------
 
-This module is currently in "beta mode". We're testing the API and UX before
-uploading the module to PyPI.
-
-To install, clone this repo and run the following:
+To install, run the following:
 
 .. code-block:: none
 
-  python setup.py build
-  python setup.py install
-
-Alternatively, if you don't want to clone the repo, you can simply:
-
-.. code-block:: none
-
-  pip install git+git://github.com/osquery/osquery-python.git
+  pip install osquery
 
 Development
 -----------
