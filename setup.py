@@ -59,7 +59,7 @@ class LintCommand(Command):
             " ".join(self._lint_paths),
         ))
 
-with open("README.rst", "r") as f:
+with open("README.md", "r") as f:
     README = f.read()
 
 with open("osquery/__init__.py", "r") as f:
