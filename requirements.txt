@@ -3,3 +3,4 @@ pylint>=1.4.3
 twine>=1.5.0
 wheel>=0.24.0
 setuptools>=15.0
+future
