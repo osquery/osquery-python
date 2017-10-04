@@ -87,7 +87,7 @@ setup(name=TITLE,
           "osquery.extensions",
       ],
       install_requires=[
-          "thrift>=0.9",
+          "thrift>=0.10",
           "argparse>=1.1",
       ],
       test_suite="tests",
