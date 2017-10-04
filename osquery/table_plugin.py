@@ -11,6 +11,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from abc import ABCMeta, abstractmethod
+from builtins import str
 from collections import namedtuple
 import json
 import logging
@@ -42,7 +43,7 @@ class TablePlugin(BasePlugin):
             rows = self.generate(ctx)
             for i, row in enumerate(rows):
                 for key, value in row.items():
-                    if not isinstance(value, basestring):
+                    if not isinstance(value, str):
                         try:
                             rows[i][key] = str(value)
                         except ValueError as e:
