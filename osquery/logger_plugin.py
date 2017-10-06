@@ -12,13 +12,14 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from abc import ABCMeta, abstractmethod
+from future.utils import with_metaclass
 
 from osquery.extensions.ttypes import ExtensionResponse, ExtensionStatus
 from osquery.plugin import BasePlugin
 
-class LoggerPlugin(BasePlugin):
+
+class LoggerPlugin(with_metaclass(ABCMeta, BasePlugin)):
     """All logger plugins should inherit from LoggerPlugin"""
-    __metaclass__ = ABCMeta
 
     _use_glog_message = "Use Glog for status logging"
     _invalid_action_message = "Not a valid logger plugin action"

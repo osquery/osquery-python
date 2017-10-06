@@ -11,12 +11,12 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from abc import ABCMeta, abstractmethod
+from future.utils import with_metaclass
 
 from osquery.singleton import Singleton
 
-class BasePlugin(Singleton):
+class BasePlugin(with_metaclass(ABCMeta, Singleton)):
     """All osquery plugins should inherit from BasePlugin"""
-    __metaclass__ = ABCMeta
 
     @abstractmethod
     def call(self, context):

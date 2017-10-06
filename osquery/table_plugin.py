@@ -13,15 +13,15 @@ from __future__ import unicode_literals
 from abc import ABCMeta, abstractmethod
 from builtins import str
 from collections import namedtuple
+from future.utils import with_metaclass
 import json
 import logging
 
 from osquery.extensions.ttypes import ExtensionResponse, ExtensionStatus
 from osquery.plugin import BasePlugin
 
-class TablePlugin(BasePlugin):
+class TablePlugin(with_metaclass(ABCMeta, BasePlugin)):
     """All table plugins should inherit from TablePlugin"""
-    __metaclass__ = ABCMeta
 
     _no_action_message = "Table plugins must include a request action"
 
