@@ -89,6 +89,7 @@ setup(name=TITLE,
       install_requires=[
           "thrift>=0.10",
           "argparse>=1.1",
+          "future",
       ],
       test_suite="tests",
       cmdclass={
