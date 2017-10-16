@@ -17,14 +17,16 @@ logger = logging.getLogger(__name__)
 INVALID_HANDLE_VALUE = 6
 ERROR_PIPE_BUSY = 231
 
-# TODO: What.. Do we need this?
 class TPipeBase(TTransportBase):
     def __init__():
         pass
 
-# Currently only supports named pipes :)
 class TPipe(TPipeBase):
     """Pipe implementation of TTransport base."""
+
+    _pipe = None
+    _timeout = None
+    _handle = None
 
     def __init__(self, pipe, timeout=5):
         """Initialize a TPipe
@@ -42,7 +44,7 @@ class TPipe(TPipeBase):
         return self._handle is not None
 
     @property
-    def _pipe(self):
+    def pipe(self):
         return self._pipe
 
     def open(self):
@@ -51,20 +53,29 @@ class TPipe(TPipeBase):
         handle = None
         try:
             while True:
-                handle = win32file.CreateFile(self._pipe, win32file.GENERIC_READ | win32file.GENERIC_WRITE, 0, None, win32file.OPEN_EXISTING, win32file.FILE_FLAG_OVERLAPPED | win32file.FILE_FLAG_WRITE_THROUGH, None)
+                handle = win32file.CreateFile(
+                            self._pipe,
+                            win32file.GENERIC_READ | win32file.GENERIC_WRITE,
+                            0,
+                            None,
+                            win32file.OPEN_EXISTING,
+                            win32file.FILE_FLAG_OVERLAPPED | win32file.FILE_FLAG_WRITE_THROUGH,
+                            None)
 
                 if handle.handle != INVALID_HANDLE_VALUE:
                     break
 
                 err = win32api.GetLastError()
                 if err != ERROR_PIPE_BUSY:
-                    raise TTransportException(TTransportException.NOT_OPEN, "Failed to open connection to pipe: {}".format(err))
+                    raise TTransportException(TTransportException.NOT_OPEN,
+                                              "Failed to open connection to pipe: {}".format(err))
 
                 # Wait for the connection to the pipe
                 win32pipe.WaitNamedPipe(self._pipe, self._timeout * 1000)
 
         except Exception as e:
-            raise TTransportException(TTransportException.NOT_OPEN, "Failed to open connection to pipe: {}".format(err))
+            raise TTransportException(TTransportException.NOT_OPEN,
+                                      "Failed to open connection to pipe: {}".format(err))
         self._handle = handle
         return
 
@@ -86,16 +97,17 @@ class TPipe(TPipeBase):
 
     # TODO: GetOverlappedResult
     def write(self, buff):
-        print('[+] write: {}'.format(buff))
         if not self._handle:
             raise TTransportException(type=TTransportException.NOT_OPEN,
                                       message='Transport not open')
 
         try:
-            ret = win32file.WriteFile(self._handle, buff, None)
+            (err, bytesWritten) = win32file.WriteFile(self._handle, buff, None)
         except Exception as e:
             raise TTransportException(type=TTransportException.UNKNOWN,
                                       message='Failed to write to named pipe')
+        print("[+] DBG: Wrote {} bytes. Error Code - {}".format(bytesWritten, err))
+
 
     def flush(self):
         pass
@@ -120,7 +132,15 @@ class TPipeServer(TPipeBase, TServerTransportBase):
         saAttr = win32security.SECURITY_ATTRIBUTES()
         saAttr.bInheritHandle = 0
 
-        self._handle = win32pipe.CreateNamedPipe(self._pipe, win32pipe.PIPE_ACCESS_DUPLEX, win32pipe.PIPE_TYPE_MESSAGE | win32pipe.PIPE_WAIT, self._maxconns, self._buffsize, self._buffsize, 0, saAttr)
+        self._handle = win32pipe.CreateNamedPipe(
+                        self._pipe,
+                        win32pipe.PIPE_ACCESS_DUPLEX,
+                        win32pipe.PIPE_TYPE_MESSAGE | win32pipe.PIPE_WAIT,
+                        self._maxconns,
+                        self._buffsize,
+                        self._buffsize,
+                        0,
+                        saAttr)
 
         err = win32api.GetLastError()
         if self._handle.handle == INVALID_HANDLE_VALUE:
