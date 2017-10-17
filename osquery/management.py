@@ -72,6 +72,7 @@ class SpawnInstance(object):
             # Windows fails to spawn if the pidfile already exists
             # Issue:
             self._pidfile = (None, tempfile.gettempdir() + '\\pyosqpid-' + str(random.randint(10000,20000)))
+            #pipeName = r'\\.\pipe\pyosqsock-' + str(random.randint(10000,20000))
             pipeName = r'\\.\pipe\pyosqsock-' + str(random.randint(10000,20000))
             self._socket = (None, pipeName)
         else:
@@ -200,9 +201,8 @@ def start_extension(name="<unknown>", version="0.0.0", sdk_version="1.8.0",
     # Disable logging for the thrift module (can be loud).
     logging.getLogger('thrift').addHandler(logging.NullHandler())
 
-    #client = ExtensionClient(path=args.socket) # TODO: Uncomment
-    client = ExtensionClient(r'\\.\pipe\shell.em')
-    
+    client = ExtensionClient(path=args.socket)
+
     if not client.open(args.timeout):
         if args.verbose:
             message = "Could not open socket %s" % args.socket
@@ -249,7 +249,8 @@ def start_extension(name="<unknown>", version="0.0.0", sdk_version="1.8.0",
 
     transport = None
     if sys.platform == 'win32':
-        transport = TPipeServer(args.socket + "-" + str(status.uuid))
+        print('[+] Creating new pipe: {}'.format(args.socket + "." + str(status.uuid)))
+        transport = TPipeServer(args.socket + "." + str(status.uuid))
     else:
         transport = TSocket.TServerSocket(
             unix_socket=args.socket + "." + str(status.uuid))

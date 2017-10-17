@@ -29,7 +29,8 @@ class TPipe(TPipeBase):
     _handle = None
 
     def __init__(self, pipe, timeout=5):
-        """Initialize a TPipe
+        """
+        Initialize a TPipe
 
         @param name(str)  The named pipe to connect to
         """
@@ -85,14 +86,17 @@ class TPipe(TPipeBase):
             raise TTransportException(type=TTransportException.NOT_OPEN,
                                       message='Called read on non-open pipe')
 
-        buff = win32file.AllocateReadBuffer(sz)
+        #buff = win32file.AllocateReadBuffer(sz)
+        buff = ''
         bytesRead = 0
         try:
-            ret = win32file.ReadFile(self._handle, buff, None)
+            (ret, buff) = win32file.ReadFile(self._handle, sz, None)
         except Exception as e:
             raise TTransportException(type=TTransportException.UNKNOWN,
                                       message='Failed to read from named pipe')
-        print('[+] read: {}'.format(buff))
+        #print('[+] read: {}'.format(buff))
+        if(ret != 0):
+            print('[-] Read from PIPE failed with {}'.format(ret))
         return buff
 
     # TODO: GetOverlappedResult
