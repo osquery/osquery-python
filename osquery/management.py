@@ -72,7 +72,6 @@ class SpawnInstance(object):
             # Windows fails to spawn if the pidfile already exists
             # Issue:
             self._pidfile = (None, tempfile.gettempdir() + '\\pyosqpid-' + str(random.randint(10000,20000)))
-            #pipeName = r'\\.\pipe\pyosqsock-' + str(random.randint(10000,20000))
             pipeName = r'\\.\pipe\pyosqsock-' + str(random.randint(10000,20000))
             self._socket = (None, pipeName)
         else:
