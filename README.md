@@ -96,10 +96,38 @@ import osquery
 if __name__ == "__main__":
     # Spawn an osquery process using an ephemeral extension socket.
     instance = osquery.SpawnInstance()
-    instance.open()
+    instance.open()  # This may raise an exception
 
     # Issues queries and call osquery Thrift APIs.
     instance.client.query("select timestamp from time")
+```
+
+### Connect to an existing socket
+
+In the example above the `SpawnInstance()` method is used to fork and configure an osquery instance. We can use similar APIs to connect to the Thrift socket of an existing osquery instance. Remember, normal UNIX permissions apply to the Thrift socket.
+
+Imagine if you started `osqueryd`:
+```sh
+$ osqueryd --ephemeral --disable_logging --disable_database \
+    --extensions_socket /home/you/.osquery/osqueryd.sock &
+```
+
+Then use the Python bindings:
+```python
+import osquery
+
+if __name__ == "__main__":
+    # You must know the Thrift socket path
+    # For an installed and running system osqueryd, this is:
+    #   Linux and macOS: /var/osquery/osquery.em
+    #   FreeBSD: /var/run/osquery.em
+    #   Windows: \\.pipe\osquery.em
+    instance = osquery.ExtensionClient('/home/you/.osquery/osqueryd.sock')
+    instance.open()  # This may raise an exception
+
+    # Issue queries and call osquery Thrift APIs.
+    client = instance.extension_client()
+    client.query('select timestamp from time')
 ```
 
 ### Install
