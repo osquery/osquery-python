@@ -11,7 +11,6 @@ from __future__ import unicode_literals
 import argparse
 import logging
 import os
-import shutil
 import socket
 import subprocess
 import sys
@@ -98,7 +97,7 @@ class SpawnInstance(object):
             try:
                 self.connection.open()
                 return
-            except:
+            except Exception:
                 time.sleep(interval)
                 delay += interval
         self.instance.kill()

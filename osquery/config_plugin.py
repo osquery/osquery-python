@@ -11,13 +11,13 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from abc import ABCMeta, abstractmethod
+from future.utils import with_metaclass
 
 from osquery.extensions.ttypes import ExtensionResponse, ExtensionStatus
 from osquery.plugin import BasePlugin
 
-class ConfigPlugin(BasePlugin):
+class ConfigPlugin(with_metaclass(ABCMeta, BasePlugin)):
     """All config plugins should inherit from ConfigPlugin"""
-    __metaclass__ = ABCMeta
 
     def call(self, context):
         """Internal routing for this plugin type.
