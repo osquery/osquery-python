@@ -66,7 +66,7 @@ class TPipe(TPipeBase):
                                         0,
                                         None,
                                         win32file.OPEN_EXISTING,
-                                        None, #win32file.FILE_FLAG_OVERLAPPED,
+                                        win32file.FILE_FLAG_OVERLAPPED,
                                         None)
 
     @property
@@ -131,10 +131,11 @@ class TPipe(TPipeBase):
             (writeError, bytesWritten) = win32file.WriteFile(self._handle, buff, None)
         except Exception as e:
             raise TTransportException(type=TTransportException.UNKNOWN,
-                                      message='Failed to write to named pipe')
+                                      message='Failed to write to named pipe: ' + e.message)
 
     def flush(self):
-        pass
+        win32file.FlushFileBuffers(self._handle)
+        win32file.SetFilePointer(self._handle, 0, win32file.FILE_BEGIN)
 
 
 class TPipeServer(TPipeBase, TServerTransportBase):
@@ -154,7 +155,7 @@ class TPipeServer(TPipeBase, TServerTransportBase):
 
         self._handle = win32pipe.CreateNamedPipe(
                         self._pipe,
-                        win32pipe.PIPE_ACCESS_DUPLEX, # | win32file.FILE_FLAG_OVERLAPPED,
+                        win32pipe.PIPE_ACCESS_DUPLEX | win32file.FILE_FLAG_OVERLAPPED,
                         win32pipe.PIPE_TYPE_BYTE | win32pipe.PIPE_READMODE_BYTE,
                         self._maxconns,
                         self._buffsize,
