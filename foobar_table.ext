@@ -1,0 +1,35 @@
+#!/usr/bin/env python
+"""This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree. An additional grant
+of patent rights can be found in the PATENTS file in the same directory.
+"""
+
+import osquery
+
+@osquery.register_plugin
+class FoobarTablePlugin(osquery.TablePlugin):
+    """Example table plugin"""
+    def name(self):
+        return "foobar"
+
+    def columns(self):
+        return [
+            osquery.TableColumn(name="foo", type=osquery.STRING),
+            osquery.TableColumn(name="baz", type=osquery.STRING),
+        ]
+
+    def generate(self, context):
+        query_data = []
+
+        for _ in range(2):
+            row = {}
+            row["foo"] = "bar"
+            row["baz"] = "baz"
+            query_data.append(row)
+
+        return query_data
+
+if __name__ == "__main__":
+    osquery.start_extension(
+        name="foobar_table",
+        version="1.0.0",)
