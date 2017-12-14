@@ -21,7 +21,7 @@ ERROR_PIPE_BUSY = 231
 # of the parent function
 class TPipeBase(TTransportBase):
     def __init__():
-        pass
+        print('[+] TPipeBase constructed')
 
     def close(self):
         print('[+] Close called')
@@ -37,13 +37,13 @@ class TPipe(TPipeBase):
     _timeout = None
     _handle = None
 
-    def __init__(self, pipe, timeout=5):
+    def __init__(self, pipe, timeout=1):
         """
         Initialize a TPipe
 
         @param name(str)  The named pipe to connect to
         """
-        print('[+] client constructed')
+        print('[+] TPipe client constructed [{}]'.format(os.getpid()))
         self._handle = None
         self._pipe = pipe
         self._timeout = timeout
@@ -62,8 +62,12 @@ class TPipe(TPipeBase):
             raise TTransportException(TTransportException.ALREADY_OPEN)
         err = None
         h = None
-        try:
-            while True:
+
+        while True:
+            print('[+] Attempting to open pipe: {}'.format(self._pipe))
+            print('[*] wat.')
+
+            try:
                 h = win32file.CreateFile( self._pipe,
                                         win32file.GENERIC_READ | win32file.GENERIC_WRITE,
                                         0,
@@ -71,21 +75,20 @@ class TPipe(TPipeBase):
                                         win32file.OPEN_EXISTING,
                                         win32file.FILE_FLAG_OVERLAPPED,
                                         None)
-
-                if h.handle != INVALID_HANDLE_VALUE:
-                    break
-
-                err = win32api.GetLastError()
-                if err != ERROR_PIPE_BUSY:
+            except Exception as e:
+                if e[0] != ERROR_PIPE_BUSY:
                     raise TTransportException(TTransportException.NOT_OPEN,
-                                              "Failed to open connection to named pipe: {}".format(err))
+                                              "Failed to open connection to pipe: {}".format(e))
 
-                # Wait for the connection to the pipe
-                win32pipe.WaitNamedPipe(self._pipe, self._timeout * 1000)
+            if h != None and h.handle != INVALID_HANDLE_VALUE:
+                break
 
-        except Exception as e:
-            raise TTransportException(TTransportException.NOT_OPEN,
-                                      "Failed to open connection to pipe: {}".format(err))
+            #err = win32api.GetLastError()
+
+            # Wait for the connection to the pipe
+            win32pipe.WaitNamedPipe(self._pipe, self._timeout * 1000)
+
+
         self._handle = h
 
 
@@ -134,6 +137,7 @@ class TPipeServer(TPipeBase, TServerTransportBase):
     """Pipe implementation of TServerTransport base."""
 
     def __init__(self, pipe, buffsize=4096, maxconns=255):
+        print('[+] TPipeServer server constructed [{}]'.format(os.getpid()))
         self._pipe = pipe
         self._buffsize = buffsize
         self._maxconns = maxconns
@@ -165,7 +169,7 @@ class TPipeServer(TPipeBase, TServerTransportBase):
         print('[+] initiateNamedConnect called')
         if self._handle == None:
             self.createNamedPipe()
-            win32pipe.ConnectNamedPipe(self._handle, None)
+        return win32pipe.ConnectNamedPipe(self._handle, None)
 
     # Listen in C++ code will reset the implementation handle to be a new
     # TNamedPipeServer instance, which in turn calls `initiateNamedConnect`
@@ -176,7 +180,12 @@ class TPipeServer(TPipeBase, TServerTransportBase):
     # Mimicking the TSocket implementations, not sure if this'll work
     def accept(self):
         print('[+] Accept called')
-        self.initiateNamedConnect()
+        gle = self.initiateNamedConnect()
+        print('[+] ConnectNamedPipe GLE: [{}]'.format(gle))
         result = TPipe(self._pipe)
+        print('[+] HANDLE: {}'.format(self._handle.handle))
+        print('[+] PIPE: {}'.format(self._pipe))
         result.open()
+
+        result.setHandle(self._handle)
         return result
