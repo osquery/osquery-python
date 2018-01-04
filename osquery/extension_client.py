@@ -44,7 +44,7 @@ class ExtensionClient(object):
         self.path = path
         sock = None
         if sys.platform == "win32":
-            sock = TPipe(pipe=self.path)
+            sock = TPipe(pipeName=self.path)
         else:
             if uuid:
                 self.path += ".%s" % str(uuid)
