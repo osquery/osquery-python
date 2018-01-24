@@ -22,6 +22,8 @@ logger = logging.getLogger(__name__)
 INVALID_HANDLE_VALUE = 6
 ERROR_PIPE_BUSY = 231
 
+pid = os.getpid()
+
 class TPipeBase(TTransportBase):
     def __init__():
         print('[+] TPipeBase constructed')
@@ -87,13 +89,12 @@ class TPipe(TPipeBase):
             print('[+] Client CreateFile GLE: {}, {}'.format(self._pipeName, err))
 
             # Wait for the connection to the pipe
-            #ret = win32pipe.WaitNamedPipe(self._pipeName, 10000)
-            print('[+] Sleeping 1')
-            time.sleep(1)
-            print('[+] Done sleeping')
-            #TODO: Adda  timeout that exits gracefully.
+            try:
+                win32pipe.WaitNamedPipe(self._pipeName, 1000)
+            except Exception as e:
+                print e.args
 
-        print('[+] NamedPipe connection has been opened')
+        print('[+] Client [{}]: Client has connected to named pipe'.format(pid))
         self._handle = h
 
 
@@ -173,7 +174,7 @@ class TPipeServer(TPipeBase, TServerTransportBase):
                         win32pipe.PIPE_UNLIMITED_INSTANCES,
                         self._buffsize,
                         self._buffsize,
-                        win32pipe.NMPWAIT_WAIT_FOREVER, # TODO: Consider 6000 (6 sec) timeout.
+                        win32pipe.NMPWAIT_WAIT_FOREVER,
                         saAttr)
 
         err = win32api.GetLastError()
@@ -193,13 +194,8 @@ class TPipeServer(TPipeBase, TServerTransportBase):
             if ret == winerror.ERROR_PIPE_CONNECTED:
                 win32event.SetEvent(self._overlapped.hEvent)
                 break
-            
-            # Otherwise wait for either a connection or timeout
-            # TODO: Consider a shorter timeout
-            #ret = win32event.WaitForSingleObject(self._overlapped.hEvent, self._timeout)
-            # Wait for object failed and the event is still not signaled
-            #if ret != win32event.WAIT_OBJECT_0:
-            #    return None
+        
+        print('[+] Server [{}]: Server has connected to named pipe'.format(pid))
 
 
 
