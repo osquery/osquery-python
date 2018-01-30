@@ -22,14 +22,11 @@ logger = logging.getLogger(__name__)
 INVALID_HANDLE_VALUE = 6
 ERROR_PIPE_BUSY = 231
 
-pid = os.getpid()
-
 class TPipeBase(TTransportBase):
     def __init__():
-        print('[+] TPipeBase constructed')
+        pass
 
     def close(self):
-        print('[+] Close called')
         if self._handle != None:
             win32pipe.DisconnectNamedPipe(self._handle)
             self._handle = None
@@ -47,27 +44,22 @@ class TPipe(TPipeBase):
 
         @param name(str)  The named pipe to connect to
         """
-        print('[+] TPipe client constructed [{}]'.format(os.getpid()))
         self._pipeName = pipeName
         self._timeout = timeout
 
     def setHandle(self, h):
-        print('[+] handle set')
         self._handle = h
 
     def isOpen(self):
-        print("[+] isOpen - {}".format(self._handle is not None))
         return self._handle is not None
 
     def open(self):
-        print('[+] Opening named pipe: {}'.format(self._pipeName))
         if self.isOpen():
             raise TTransportException(TTransportException.ALREADY_OPEN)
         err = None
         h = None
 
         while True:
-            #print('[+] Attempting to open pipe: {}'.format(self._pipeName))
             try:
                 h = win32file.CreateFile( self._pipeName,
                                         win32file.GENERIC_READ | win32file.GENERIC_WRITE,
@@ -82,24 +74,17 @@ class TPipe(TPipeBase):
                                               "Failed to open connection to pipe: {}".format(e))
             # Success, break out.
             if h != None and h.handle != INVALID_HANDLE_VALUE:
-                print('[+] Handle received: {}'.format(h))
-                print('[+] Handle received: {}'.format(h.handle))
                 break
-            err = win32api.GetLastError()
-            print('[+] Client CreateFile GLE: {}, {}'.format(self._pipeName, err))
 
             # Wait for the connection to the pipe
             try:
                 win32pipe.WaitNamedPipe(self._pipeName, 1000)
             except Exception as e:
                 if e.args[0] not in (winerror.ERROR_SEM_TIMEOUT, winerror.ERROR_PIPE_BUSY):
-                    print("Client failed to connect to server with {}".format(e.args[0]))
-
-        print('[+] Client [{}]: Client has connected to named pipe {}'.format(pid, self._pipeName))
+                    raise TTransportException(type=TTransportException.UNKNOWN,
+                                              message="Client failed to connect to server with {}".format(e.args[0]))
         self._handle = h
 
-
-    # TODO: GetOverlappedResult
     def read(self, sz):
         if not self.isOpen():
             raise TTransportException(type=TTransportException.NOT_OPEN,
@@ -118,10 +103,8 @@ class TPipe(TPipeBase):
         if len(buff) == 0:
             raise TTransportException(type=TTransportException.END_OF_FILE,
                                       message='TPipe read 0 bytes')
-        print('[+] Read [{}]: {}'.format(len(buff), buff))
         return buff
 
-    # TODO: GetOverlappedResult
     def write(self, buff):
         if not self.isOpen():
             raise TTransportException(type=TTransportException.NOT_OPEN,
@@ -133,10 +116,8 @@ class TPipe(TPipeBase):
         except Exception as e:
             raise TTransportException(type=TTransportException.UNKNOWN,
                                       message='Failed to write to named pipe: ' + e.message)
-        print('[+] Write [{}]: {}'.format(bytesWritten, buff))
 
     def flush(self):
-        print('[+] flush')
         win32file.FlushFileBuffers(self._handle)
 
 
@@ -158,33 +139,17 @@ class TPipeServer(TPipeBase, TServerTransportBase):
     # Listen in C++ code will reset the implementation handle to be a new
     # TNamedPipeServer instance, which in turn calls `initiateNamedConnect`
     def listen(self):
-        print('[+] Listen called')
         ret = self.createNamedPipe()
         if ret != True:
             raise TTransportException(type=TTransportException.NOT_OPEN,
                                       message='TCreateNamedPipe failed')
 
-
-        print('[+] Server [{}]: Server has connected to named pipe'.format(pid))
-
-
-
-
-    # Mimicking the TSocket implementations, not sure if this'll work
     def accept(self):
-        print('[+] Accept called')
-        #gle = self.connectPipe()
-
         if self._handle == None:
             self.createNamedPipe()
 
-
         self.initiateNamedConnect()
-        #print('[+] ConnectNamedPipe GLE: [{}]'.format(gle))
         result = TPipe(self._pipeName)
-        #print('[+] HANDLE: {}'.format(self._handle.handle))
-        #print('[+] PIPE: {}'.format(self._pipeName))
-        #result.open()
 
         result.setHandle(self._handle)
         return result
@@ -196,7 +161,6 @@ class TPipeServer(TPipeBase, TServerTransportBase):
         saAttr = pywintypes.SECURITY_ATTRIBUTES()
         saAttr.SetSecurityDescriptorDacl(1, None, 0)
 
-        print('[+] Creating new named pipe')
         self._handle = win32pipe.CreateNamedPipe(
                         self._pipeName,
                         openMode,
@@ -214,7 +178,6 @@ class TPipeServer(TPipeBase, TServerTransportBase):
             return False
         return True
 
-
     def initiateNamedConnect(self):
         while True:
             try:
@@ -223,7 +186,6 @@ class TPipeServer(TPipeBase, TServerTransportBase):
                 raise TTransportException(type=TTransportException.NOT_OPEN,
                                       message='TConnectNamedPipe failed: {}'.format(err))
 
-            # Success! Client has connected, signal the overlapped event
             if ret == winerror.ERROR_PIPE_CONNECTED:
                 win32event.SetEvent(self._overlapped.hEvent)
                 break
