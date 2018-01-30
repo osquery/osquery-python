@@ -1,10 +1,3 @@
-import errno
-import logging
-import os
-import socket
-import sys
-import time
-
 import win32event
 import win32pipe
 import win32file
@@ -16,8 +9,6 @@ import pywintypes
 from thrift.transport.TTransport import TTransportBase
 from thrift.transport.TTransport import TTransportException
 from thrift.transport.TTransport import TServerTransportBase
-
-logger = logging.getLogger(__name__)
 
 INVALID_HANDLE_VALUE = 6
 ERROR_PIPE_BUSY = 231
@@ -39,11 +30,6 @@ class TPipe(TPipeBase):
     _handle = None
 
     def __init__(self, pipeName, timeout=5):
-        """
-        Initialize a TPipe
-
-        @param name(str)  The named pipe to connect to
-        """
         self._pipeName = pipeName
         self._timeout = timeout
 
@@ -71,18 +57,19 @@ class TPipe(TPipeBase):
             except Exception as e:
                 if e[0] != ERROR_PIPE_BUSY:
                     raise TTransportException(TTransportException.NOT_OPEN,
-                                              "Failed to open connection to pipe: {}".format(e))
+                                              'Failed to open connection to pipe: {}'.format(e))
             # Success, break out.
             if h != None and h.handle != INVALID_HANDLE_VALUE:
                 break
 
             # Wait for the connection to the pipe
             try:
-                win32pipe.WaitNamedPipe(self._pipeName, 1000)
+                #TODO: Set the timeout here to be the param passed in
+                win32pipe.WaitNamedPipe(self._pipeName, self._timeout)
             except Exception as e:
                 if e.args[0] not in (winerror.ERROR_SEM_TIMEOUT, winerror.ERROR_PIPE_BUSY):
                     raise TTransportException(type=TTransportException.UNKNOWN,
-                                              message="Client failed to connect to server with {}".format(e.args[0]))
+                                              message='Client failed to connect to server with {}'.format(e.args[0]))
         self._handle = h
 
     def read(self, sz):
@@ -124,22 +111,20 @@ class TPipe(TPipeBase):
 class TPipeServer(TPipeBase, TServerTransportBase):
     """Pipe implementation of TServerTransport base."""
 
-    def __init__(self, pipeName, buffsize=4096, maxconns=255, timeout=100):
-        print('[+] TPipeServer server constructed [{}]'.format(os.getpid()))
+    def __init__(self, pipeName, buffsize=4096, maxconns=255):
         self._pipeName = pipeName
         self._buffsize = buffsize
         self._maxconns = maxconns
         self._handle = None
-        self._timeout = timeout
 
-        # Async file I/O overlapped event
+        # Overlapped event for Windows Async IO
         self._overlapped = pywintypes.OVERLAPPED()
         self._overlapped.hEvent = win32event.CreateEvent(None, 0, 0, None)
 
-    # Listen in C++ code will reset the implementation handle to be a new
-    # TNamedPipeServer instance, which in turn calls `initiateNamedConnect`
+    # Create a new named pipe if one doesn't already exist
     def listen(self):
-        ret = self.createNamedPipe()
+        if self._handle == None:
+            ret = self.createNamedPipe()
         if ret != True:
             raise TTransportException(type=TTransportException.NOT_OPEN,
                                       message='TCreateNamedPipe failed')
