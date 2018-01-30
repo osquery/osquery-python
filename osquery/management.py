@@ -108,7 +108,6 @@ class SpawnInstance(object):
             "--config_path",
             "/dev/null",
         ]
-        print('[+] Spawning instance: {}'.format(proc))
         self.instance = subprocess.Popen(proc,
             stdin=subprocess.PIPE, stdout=subprocess.PIPE,
             stderr=subprocess.PIPE)
@@ -120,9 +119,7 @@ class SpawnInstance(object):
         delay = 0
         while delay < timeout:
             try:
-                print('A1')
                 self.connection.open()
-                print('A2')
                 return
             except Exception:
                 time.sleep(interval)
@@ -248,7 +245,6 @@ def start_extension(name="<unknown>", version="0.0.0", sdk_version="1.8.0",
 
     transport = None
     if sys.platform == 'win32':
-        print('[+] Creating new pipe: {}'.format(args.socket + "." + str(status.uuid)))
         transport = TPipeServer(args.socket + "." + str(status.uuid))
     else:
         transport = TSocket.TServerSocket(
