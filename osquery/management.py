@@ -40,9 +40,9 @@ DARWIN_BINARY_PATH = "/usr/local/bin/osqueryd"
 LINUX_BINARY_PATH = "/usr/bin/osqueryd"
 WINDOWS_BINARY_PATH = "C:\\ProgramData\\osquery\\osqueryd\\osqueryd.exe"
 
+
 class SpawnInstance(object):
     """Spawn a standalone osquery instance"""
-
     """The osquery process instance."""
     instance = None
     """The extension client connection attached to the instance."""
@@ -70,17 +70,16 @@ class SpawnInstance(object):
         logging.getLogger('thrift').addHandler(logging.NullHandler())
         if sys.platform == "win32":
             # Windows fails to spawn if the pidfile already exists
-            # Issue:
-            self._pidfile = (None, tempfile.gettempdir() + '\\pyosqpid-' + str(random.randint(10000,20000)))
-            pipeName = r'\\.\pipe\pyosqsock-' + str(random.randint(10000,20000))
+            self._pidfile = (None, tempfile.gettempdir() + '\\pyosqpid-' +
+                             str(random.randint(10000, 20000)))
+            pipeName = r'\\.\pipe\pyosqsock-' + str(
+                random.randint(10000, 20000))
             self._socket = (None, pipeName)
         else:
             self._socket = tempfile.mkstemp(prefix="pyosqsock")
             self._pidfile = tempfile.mkstemp(prefix="pyosqpid")
             with open(self._pidfile[1], "w") as fh:
                 fh.write("100000")
-
-        self._dbpath = tempfile.mkdtemp(prefix="pyoqsdb")
 
     def __del__(self):
         if self.connection is not None:
@@ -108,8 +107,10 @@ class SpawnInstance(object):
             "--config_path",
             "/dev/null",
         ]
-        self.instance = subprocess.Popen(proc,
-            stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+        self.instance = subprocess.Popen(
+            proc,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
             stderr=subprocess.PIPE)
         self.connection = ExtensionClient(path=self._socket[1])
         if not self.is_running():
@@ -126,10 +127,7 @@ class SpawnInstance(object):
                 delay += interval
         self.instance.kill()
         self.instance = None
-        if sys.platform == "win32":
-            raise Exception("Cannot open pipe: %s" % (self._socket[1]))
-        else:
-            raise Exception("Cannot open socket: %s" % (self._socket[1]))
+        raise Exception("Cannot open connection: %s" % (self._socket[1]))
 
     def is_running(self):
         """Check if the instance has spawned."""
@@ -142,11 +140,10 @@ class SpawnInstance(object):
         """The extension client."""
         return self.connection.extension_manager_client()
 
+
 def parse_cli_params():
     """Parse CLI parameters passed to the extension executable"""
-    parser = argparse.ArgumentParser(description=(
-        "osquery python extension"
-    ))
+    parser = argparse.ArgumentParser(description=("osquery python extension"))
     parser.add_argument(
         "--socket",
         type=str,
@@ -168,6 +165,7 @@ def parse_cli_params():
         help="Enable verbose informational messages")
     return parser.parse_args()
 
+
 def start_watcher(client, interval):
     """Ping the osquery extension manager to detect dirty shutdowns."""
     try:
@@ -181,7 +179,10 @@ def start_watcher(client, interval):
         pass
     os._exit(0)
 
-def start_extension(name="<unknown>", version="0.0.0", sdk_version="1.8.0",
+
+def start_extension(name="<unknown>",
+                    version="0.0.0",
+                    sdk_version="1.8.0",
                     min_sdk_version="1.8.0"):
     """Start your extension by communicating with osquery core and starting
     a thrift server.
@@ -255,6 +256,7 @@ def start_extension(name="<unknown>", version="0.0.0", sdk_version="1.8.0",
     server = TServer.TSimpleServer(processor, transport, tfactory, pfactory)
     server.serve()
 
+
 def deregister_extension():
     """Deregister the entire extension from the core extension manager"""
     args = parse_cli_params()
@@ -279,7 +281,11 @@ def deregister_extension():
         )
 
     if status.code is not 0:
-        raise ExtensionException(code=1, message=status.message,)
+        raise ExtensionException(
+            code=1,
+            message=status.message,
+        )
+
 
 def register_plugin(plugin):
     """Decorator wrapper used for registering a plugin class

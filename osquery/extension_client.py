@@ -29,6 +29,7 @@ else:
     DEFAULT_SOCKET_PATH = "/var/osquery/osquery.em"
 """The default path for osqueryd sockets"""
 
+
 class ExtensionClient(object):
     """A client for connecting to an existing extension manager socket"""
 
@@ -60,7 +61,6 @@ class ExtensionClient(object):
     def open(self, timeout=1, interval=0.2):
         """Attempt to open the UNIX domain socket"""
         delay = 0
-
         while delay < timeout:
             try:
                 self._transport.open()

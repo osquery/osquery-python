@@ -36,10 +36,6 @@ class TPipeBase(TTransportBase):
 class TPipe(TPipeBase):
     """Client for communicating over Named Pipes"""
 
-    _pipeName = None
-    _timeout = None
-    _handle = None
-
     def __init__(self, pipeName, timeout=5):
         """
         Initialize a TPipe client
@@ -47,6 +43,7 @@ class TPipe(TPipeBase):
         @param pipeName(string)  The path of the pipe to connect to.
         @param timeout(int)  The time to wait for a named pipe connection.
         """
+        self._handle = None
         self._pipeName = pipeName
         self._timeout = timeout
 
@@ -59,9 +56,8 @@ class TPipe(TPipeBase):
     def open(self):
         if self.isOpen():
             raise TTransportException(TTransportException.ALREADY_OPEN)
-        err = None
-        h = None
 
+        h = None
         while True:
             try:
                 h = win32file.CreateFile(
@@ -74,13 +70,13 @@ class TPipe(TPipeBase):
                     raise TTransportException(
                         TTransportException.NOT_OPEN,
                         'Failed to open connection to pipe: {}'.format(e))
+
             # Success, break out.
             if h != None and h.handle != winerror.ERROR_INVALID_HANDLE:
                 break
 
             # Wait for the connection to the pipe
             try:
-                #TODO: Set the timeout here to be the param passed in
                 win32pipe.WaitNamedPipe(self._pipeName, self._timeout)
             except Exception as e:
                 if e.args[0] not in (winerror.ERROR_SEM_TIMEOUT,
@@ -119,7 +115,7 @@ class TPipe(TPipeBase):
             raise TTransportException(
                 type=TTransportException.NOT_OPEN,
                 message='Called read on non-open pipe')
-        err = None
+
         bytesWritten = None
         try:
             (writeError, bytesWritten) = win32file.WriteFile(
@@ -134,9 +130,16 @@ class TPipe(TPipeBase):
 
 
 class TPipeServer(TPipeBase, TServerTransportBase):
-    """Pipe implementation of TServerTransport base."""
+    """Named pipe implementation of TServerTransport"""
 
     def __init__(self, pipeName, buffsize=4096, maxconns=255):
+        """
+        Initialize a TPipe client
+
+        @param pipeName(string)  The path of the pipe to connect to.
+        @param buffsize(int)  The size of read/write buffers to use.
+        @param maxconns(int)  Maximum number of simultaneous connections.
+        """
         self._pipeName = pipeName
         self._buffsize = buffsize
         self._maxconns = maxconns
@@ -150,6 +153,7 @@ class TPipeServer(TPipeBase, TServerTransportBase):
     def listen(self):
         if self._handle == None:
             ret = self.createNamedPipe()
+
         if ret != True:
             raise TTransportException(
                 type=TTransportException.NOT_OPEN,
@@ -161,8 +165,8 @@ class TPipeServer(TPipeBase, TServerTransportBase):
 
         self.initiateNamedConnect()
         result = TPipe(self._pipeName)
-
         result.setHandle(self._handle)
+
         return result
 
     def createNamedPipe(self):
@@ -178,7 +182,7 @@ class TPipeServer(TPipeBase, TServerTransportBase):
             win32pipe.NMPWAIT_WAIT_FOREVER, saAttr)
 
         err = win32api.GetLastError()
-        if self._handle.handle == INVALID_HANDLE_VALUE:
+        if self._handle.handle == winerror.ERROR_INVALID_HANDLE:
             raise TTransportException(
                 type=TTransportException.NOT_OPEN,
                 message='TCreateNamedPipe failed: {}'.format(err))
