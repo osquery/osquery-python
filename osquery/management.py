@@ -24,9 +24,11 @@ from thrift.server import TServer
 from thrift.transport import TSocket
 from thrift.transport import TTransport
 
-# We bootleg our own version of Windows pipe coms
-from osquery.TPipe import TPipe
-from osquery.TPipe import TPipeServer
+if sys.platform == "win32":
+    # We bootleg our own version of Windows pipe coms
+    from osquery.TPipe import TPipe
+    from osquery.TPipe import TPipeServer
+
 from osquery.extensions.ttypes import ExtensionException, InternalExtensionInfo
 from osquery.extensions.Extension import Processor
 from osquery.extension_client import ExtensionClient, DEFAULT_SOCKET_PATH

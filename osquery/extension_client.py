@@ -11,19 +11,15 @@ from __future__ import unicode_literals
 import time
 import sys
 
-if sys.platform == "win32":
-    import win32pipe
-
 from thrift.protocol import TBinaryProtocol
 from thrift.transport import TSocket
 from thrift.transport import TTransport
 
-# We bootleg our own version of Windows pipe coms
-from osquery.TPipe import TPipe
-
 from osquery.extensions.ExtensionManager import Client
 
 if sys.platform == "win32":
+    # We bootleg our own version of Windows pipe coms
+    from osquery.TPipe import TPipe
     DEFAULT_SOCKET_PATH = r'\\.\pipe\osquery.em'
 else:
     DEFAULT_SOCKET_PATH = "/var/osquery/osquery.em"
