@@ -12,16 +12,12 @@ import argparse
 import logging
 import os
 import random
-import shutil
 import socket
 import subprocess
 import sys
 import tempfile
 import threading
 import time
-
-if sys.platform == "win32":
-    import win32pipe
 
 from thrift.protocol import TBinaryProtocol
 from thrift.server import TServer
@@ -77,9 +73,6 @@ class SpawnInstance(object):
             self._socket = (None, pipeName)
         else:
             self._socket = tempfile.mkstemp(prefix="pyosqsock")
-            self._pidfile = tempfile.mkstemp(prefix="pyosqpid")
-            with open(self._pidfile[1], "w") as fh:
-                fh.write("100000")
 
     def __del__(self):
         if self.connection is not None:
