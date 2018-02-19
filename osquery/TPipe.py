@@ -39,38 +39,41 @@ class TPipeBase(TTransportBase):
 class TPipe(TPipeBase):
     """Client for communicating over Named Pipes"""
 
-    def __init__(self, pipeName, timeout=5, maxAttempts=5):
+    def __init__(self, pipe_name, timeout=5, max_attempts=5):
         """
         Initialize a TPipe client
 
-        @param pipeName(string)  The path of the pipe to connect to.
+        @param pipe_name(string)  The path of the pipe to connect to.
         @param timeout(int)  The time to wait for a named pipe connection.
-        @param maxAttempts(int)  Maximum number of connection attempts.
+        @param max_attempts(int)  Maximum number of connection attempts.
         """
         self._handle = None
-        self._pipeName = pipeName
+        self._pipe_name = pipe_name
         self._timeout = timeout
-        self._maxConnAttempts = maxAttempts
+        self._max_conn_attempts = max_attempts
 
-    def setHandle(self, h):
+    def set_handle(self, h):
         self._handle = h
 
-    def isOpen(self):
+    def is_open(self):
         return self._handle is not None
 
     def open(self):
-        if self.isOpen():
+        if self.is_open():
             raise TTransportException(TTransportException.ALREADY_OPEN)
 
         h = None
         conns = 0
-        while conns < self._maxConnAttempts:
+        while conns < self._max_conn_attempts:
             try:
                 h = win32file.CreateFile(
-                    self._pipeName,
-                    win32file.GENERIC_READ | win32file.GENERIC_WRITE, 0, None,
-                    win32file.OPEN_EXISTING, win32file.FILE_FLAG_OVERLAPPED,
-                    None)
+                        self._pipe_name,
+                        win32file.GENERIC_READ | win32file.GENERIC_WRITE,
+                        0,
+                        None,
+                        win32file.OPEN_EXISTING,
+                        win32file.FILE_FLAG_OVERLAPPED,
+                        None)
             except Exception as e:
                 if e[0] != winerror.ERROR_PIPE_BUSY:
                     raise TTransportException(
@@ -84,7 +87,7 @@ class TPipe(TPipeBase):
 
             # Wait for the connection to the pipe
             try:
-                win32pipe.WaitNamedPipe(self._pipeName, self._timeout)
+                win32pipe.WaitNamedPipe(self._pipe_name, self._timeout)
             except Exception as e:
                 if e.args[0] not in (winerror.ERROR_SEM_TIMEOUT,
                                      winerror.ERROR_PIPE_BUSY):
@@ -99,7 +102,7 @@ class TPipe(TPipeBase):
             message='Client exceeded max connection attempts')
 
     def read(self, sz):
-        if not self.isOpen():
+        if not self.is_open():
             raise TTransportException(
                 type=TTransportException.NOT_OPEN,
                 message='Called read on non-open pipe')
@@ -111,7 +114,7 @@ class TPipe(TPipeBase):
             raise TTransportException(
                 type=TTransportException.UNKNOWN, message='TPipe read failed')
 
-        if err != 0:
+        if err:
             raise TTransportException(
                 type=TTransportException.UNKNOWN,
                 message='TPipe read failed with GLE={}'.format(err))
@@ -122,7 +125,7 @@ class TPipe(TPipeBase):
         return buff
 
     def write(self, buff):
-        if not self.isOpen():
+        if not self.is_open():
             raise TTransportException(
                 type=TTransportException.NOT_OPEN,
                 message='Called read on non-open pipe')
@@ -141,7 +144,7 @@ class TPipe(TPipeBase):
                 message='Failed to write complete buffer to named pipe')
 
     def flush(self):
-        if self.isOpen():
+        if self.is_open():
             win32file.FlushFileBuffers(self._handle)
 
 
@@ -149,22 +152,22 @@ class TPipeServer(TPipeBase, TServerTransportBase):
     """Named pipe implementation of TServerTransport"""
 
     def __init__(self,
-                 pipeName,
-                 buffSize=4096,
-                 maxConns=255,
-                 maxConnAttempts=5):
+                 pipe_name,
+                 buff_size=4096,
+                 max_conns=255,
+                 max_conn_attempts=5):
         """
         Initialize a TPipe client
 
-        @param pipeName(string)  The path of the pipe to connect to.
-        @param buffSize(int)  The size of read/write buffers to use.
-        @param maxConns(int)  Maximum number of simultaneous connections.
-        @param maxConnAttempts(int)  Maximum number of connection attempts
+        @param pipe_name(string)  The path of the pipe to connect to.
+        @param buff_size(int)  The size of read/write buffers to use.
+        @param max_conns(int)  Maximum number of simultaneous connections.
+        @param max_conn_attempts(int)  Maximum number of connection attempts
         """
-        self._pipeName = pipeName
-        self._buffSize = buffSize
-        self._maxConns = maxConns
-        self._maxConnAttempts = maxConnAttempts
+        self._pipe_name = pipe_name
+        self._buff_size = buff_size
+        self._max_conns = max_conns
+        self._max_conn_attempts = max_conn_attempts
         self._handle = None
 
         # Overlapped event for Windows Async IO
@@ -174,40 +177,40 @@ class TPipeServer(TPipeBase, TServerTransportBase):
     # Create a new named pipe if one doesn't already exist
     def listen(self):
         if self._handle is None:
-            self.createNamedPipe()
+            self.create_named_pipe()
 
     def accept(self):
-        if self._handle is None:
-            self.createNamedPipe()
+        if self._handle is not None:
+            self.create_named_pipe()
 
-        self.initiateNamedConnect()
-        result = TPipe(self._pipeName)
-        result.setHandle(self._handle)
+        self.initiate_named_connect()
+        result = TPipe(self._pipe_name)
+        result.set_handle(self._handle)
 
         return result
 
-    def createNamedPipe(self):
+    def create_named_pipe(self):
         openMode = win32pipe.PIPE_ACCESS_DUPLEX | win32file.FILE_FLAG_OVERLAPPED
         pipeMode = win32pipe.PIPE_TYPE_BYTE | win32pipe.PIPE_READMODE_BYTE
 
         saAttr = pywintypes.SECURITY_ATTRIBUTES()
         saAttr.SetSecurityDescriptorDacl(1, None, 0)
 
-        self._handle = win32pipe.CreateNamedPipe(
-            self._pipeName, openMode, pipeMode,
-            win32pipe.PIPE_UNLIMITED_INSTANCES, self._buffSize, self._buffSize,
+        self._handle = win32pipe.create_named_pipe(
+            self._pipe_name, openMode, pipeMode,
+            win32pipe.PIPE_UNLIMITED_INSTANCES, self._buff_size, self._buff_size,
             win32pipe.NMPWAIT_WAIT_FOREVER, saAttr)
 
         err = win32api.GetLastError()
         if self._handle.handle == winerror.ERROR_INVALID_HANDLE:
             raise TTransportException(
                 type=TTransportException.NOT_OPEN,
-                message='TCreateNamedPipe failed: {}'.format(err))
+                message='Tcreate_named_pipe failed: {}'.format(err))
         return True
 
-    def initiateNamedConnect(self):
+    def initiate_named_connect(self):
         conns = 0
-        while conns < self._maxConnAttempts:
+        while conns < self._max_conn_attempts:
             try:
                 ret = win32pipe.ConnectNamedPipe(self._handle,
                                                  self._overlapped)

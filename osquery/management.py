@@ -24,7 +24,9 @@ from thrift.server import TServer
 from thrift.transport import TSocket
 from thrift.transport import TTransport
 
-if sys.platform == "win32":
+WINDOWS_PLATFORM = "win32"
+
+if sys.platform == WINDOWS_PLATFORM:
     # We bootleg our own version of Windows pipe coms
     from osquery.TPipe import TPipe
     from osquery.TPipe import TPipeServer
@@ -56,7 +58,7 @@ class SpawnInstance(object):
             # Darwin is special and must have binaries installed in /usr/local.
             if sys.platform == "darwin":
                 self.path = DARWIN_BINARY_PATH
-            elif sys.platform == "win32":
+            elif sys.platform == WINDOWS_PLATFORM:
                 self.path = WINDOWS_BINARY_PATH
             else:
                 self.path = LINUX_BINARY_PATH
@@ -66,7 +68,7 @@ class SpawnInstance(object):
 
         # Disable logging for the thrift module (can be loud).
         logging.getLogger('thrift').addHandler(logging.NullHandler())
-        if sys.platform == "win32":
+        if sys.platform == WINDOWS_PLATFORM:
             # Windows fails to spawn if the pidfile already exists
             self._pidfile = (None, tempfile.gettempdir() + '\\pyosqpid-' +
                              str(random.randint(10000, 20000)))
@@ -241,7 +243,7 @@ def start_extension(name="<unknown>",
 
     transport = None
     if sys.platform == 'win32':
-        transport = TPipeServer(args.socket + "." + str(status.uuid))
+        transport = TPipeServer(pipe_name="{}.{}".format(args.socket, status.uuid))
     else:
         transport = TSocket.TServerSocket(
             unix_socket=args.socket + "." + str(status.uuid))

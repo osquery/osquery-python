@@ -17,14 +17,15 @@ from thrift.transport import TTransport
 
 from osquery.extensions.ExtensionManager import Client
 
-if sys.platform == "win32":
+from osquery.management import WINDOWS_PLATFORM
+
+"""The default path for osqueryd sockets"""
+if sys.platform == WINDOWS_PLATFORM:
     # We bootleg our own version of Windows pipe coms
     from osquery.TPipe import TPipe
     DEFAULT_SOCKET_PATH = r'\\.\pipe\osquery.em'
 else:
     DEFAULT_SOCKET_PATH = "/var/osquery/osquery.em"
-"""The default path for osqueryd sockets"""
-
 
 class ExtensionClient(object):
     """A client for connecting to an existing extension manager socket"""
@@ -40,11 +41,10 @@ class ExtensionClient(object):
         """
         self.path = path
         sock = None
-        if sys.platform == "win32":
-            sock = TPipe(pipeName=self.path)
+        if sys.platform == WINDOWS_PLATFORM:
+            sock = TPipe(pipe_name=self.path)
         else:
-            if uuid:
-                self.path += ".%s" % str(uuid)
+            self.path += ".{}".format(uuid) if uuid else ""
             sock = TSocket.TSocket(unix_socket=self.path)
         self._transport = TTransport.TBufferedTransport(sock)
         self._protocol = TBinaryProtocol.TBinaryProtocol(self._transport)
