@@ -27,10 +27,12 @@ __all__ = [
     "STRING",
     "TableColumn",
     "TablePlugin",
+    "WINDOWS_PLATFORM",
 ]
 
 from osquery.config_plugin import ConfigPlugin
-from osquery.extension_client import DEFAULT_SOCKET_PATH, ExtensionClient
+from osquery.extension_client import DEFAULT_SOCKET_PATH, ExtensionClient, \
+    WINDOWS_PLATFORM
 from osquery.extension_manager import ExtensionManager
 from osquery.logger_plugin import LoggerPlugin
 from osquery.management import SpawnInstance, \

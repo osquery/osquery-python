@@ -24,17 +24,15 @@ from thrift.server import TServer
 from thrift.transport import TSocket
 from thrift.transport import TTransport
 
-WINDOWS_PLATFORM = "win32"
+from osquery.extensions.ttypes import ExtensionException, InternalExtensionInfo
+from osquery.extensions.Extension import Processor
+from osquery.extension_client import ExtensionClient, DEFAULT_SOCKET_PATH, WINDOWS_PLATFORM
+from osquery.extension_manager import ExtensionManager
 
 if sys.platform == WINDOWS_PLATFORM:
     # We bootleg our own version of Windows pipe coms
     from osquery.TPipe import TPipe
     from osquery.TPipe import TPipeServer
-
-from osquery.extensions.ttypes import ExtensionException, InternalExtensionInfo
-from osquery.extensions.Extension import Processor
-from osquery.extension_client import ExtensionClient, DEFAULT_SOCKET_PATH
-from osquery.extension_manager import ExtensionManager
 
 DARWIN_BINARY_PATH = "/usr/local/bin/osqueryd"
 LINUX_BINARY_PATH = "/usr/bin/osqueryd"

@@ -17,7 +17,7 @@ from thrift.transport import TTransport
 
 from osquery.extensions.ExtensionManager import Client
 
-from osquery.management import WINDOWS_PLATFORM
+WINDOWS_PLATFORM = "win32"
 
 """The default path for osqueryd sockets"""
 if sys.platform == WINDOWS_PLATFORM:
