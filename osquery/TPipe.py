@@ -136,7 +136,7 @@ class TPipe(TPipeBase):
         except Exception as e:
             raise TTransportException(
                 type=TTransportException.UNKNOWN,
-                message='Failed to write to named pipe: ' + e.message)
+                message='Failed to write to named pipe: ' + str(e))
 
         if bytesWritten != len(buff):
             raise TTransportException(
@@ -196,7 +196,7 @@ class TPipeServer(TPipeBase, TServerTransportBase):
         saAttr = pywintypes.SECURITY_ATTRIBUTES()
         saAttr.SetSecurityDescriptorDacl(1, None, 0)
 
-        self._handle = win32pipe.create_named_pipe(
+        self._handle = win32pipe.CreateNamedPipe(
             self._pipe_name, openMode, pipeMode,
             win32pipe.PIPE_UNLIMITED_INSTANCES, self._buff_size, self._buff_size,
             win32pipe.NMPWAIT_WAIT_FOREVER, saAttr)
@@ -217,7 +217,7 @@ class TPipeServer(TPipeBase, TServerTransportBase):
             except Exception as e:
                 raise TTransportException(
                     type=TTransportException.NOT_OPEN,
-                    message='TConnectNamedPipe failed: {}'.format(e.message))
+                    message='TConnectNamedPipe failed: {}'.format(str(e)))
 
             # Successfully connected, break out.
             if ret == winerror.ERROR_PIPE_CONNECTED:
