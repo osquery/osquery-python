@@ -74,8 +74,8 @@ class TPipe(TPipeBase):
                         win32file.OPEN_EXISTING,
                         win32file.FILE_FLAG_OVERLAPPED,
                         None)
-            except Exception as e:
-                if e[0] != winerror.ERROR_PIPE_BUSY:
+            except pywintypes.error as e:
+                if e.winerror != winerror.ERROR_PIPE_BUSY:
                     raise TTransportException(
                         TTransportException.NOT_OPEN,
                         'Failed to open connection to pipe: {}'.format(e))
