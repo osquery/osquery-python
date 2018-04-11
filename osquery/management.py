@@ -11,6 +11,7 @@ from __future__ import unicode_literals
 import argparse
 import logging
 import os
+import random
 import socket
 import subprocess
 import sys
@@ -25,15 +26,21 @@ from thrift.transport import TTransport
 
 from osquery.extensions.ttypes import ExtensionException, InternalExtensionInfo
 from osquery.extensions.Extension import Processor
-from osquery.extension_client import ExtensionClient, DEFAULT_SOCKET_PATH
+from osquery.extension_client import ExtensionClient, DEFAULT_SOCKET_PATH, WINDOWS_PLATFORM
 from osquery.extension_manager import ExtensionManager
+
+if sys.platform == WINDOWS_PLATFORM:
+    # We bootleg our own version of Windows pipe coms
+    from osquery.TPipe import TPipe
+    from osquery.TPipe import TPipeServer
 
 DARWIN_BINARY_PATH = "/usr/local/bin/osqueryd"
 LINUX_BINARY_PATH = "/usr/bin/osqueryd"
+WINDOWS_BINARY_PATH = "C:\\ProgramData\\osquery\\osqueryd\\osqueryd.exe"
+
 
 class SpawnInstance(object):
     """Spawn a standalone osquery instance"""
-
     """The osquery process instance."""
     instance = None
     """The extension client connection attached to the instance."""
@@ -49,6 +56,8 @@ class SpawnInstance(object):
             # Darwin is special and must have binaries installed in /usr/local.
             if sys.platform == "darwin":
                 self.path = DARWIN_BINARY_PATH
+            elif sys.platform == WINDOWS_PLATFORM:
+                self.path = WINDOWS_BINARY_PATH
             else:
                 self.path = LINUX_BINARY_PATH
         else:
@@ -57,6 +66,15 @@ class SpawnInstance(object):
 
         # Disable logging for the thrift module (can be loud).
         logging.getLogger('thrift').addHandler(logging.NullHandler())
+        if sys.platform == WINDOWS_PLATFORM:
+            # Windows fails to spawn if the pidfile already exists
+            self._pidfile = (None, tempfile.gettempdir() + '\\pyosqpid-' +
+                             str(random.randint(10000, 20000)))
+            pipeName = r'\\.\pipe\pyosqsock-' + str(
+                random.randint(10000, 20000))
+            self._socket = (None, pipeName)
+        else:
+            self._socket = tempfile.mkstemp(prefix="pyosqsock")
 
     def __del__(self):
         if self.connection is not None:
@@ -84,8 +102,10 @@ class SpawnInstance(object):
             "--config_path",
             "/dev/null",
         ]
-        self.instance = subprocess.Popen(proc,
-            stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+        self.instance = subprocess.Popen(
+            proc,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
             stderr=subprocess.PIPE)
         self.connection = ExtensionClient(path=self._socket[1])
         if not self.is_running():
@@ -102,7 +122,7 @@ class SpawnInstance(object):
                 delay += interval
         self.instance.kill()
         self.instance = None
-        raise Exception("Cannot open socket: %s" % (self._socket[1]))
+        raise Exception("Cannot open connection: %s" % (self._socket[1]))
 
     def is_running(self):
         """Check if the instance has spawned."""
@@ -115,11 +135,10 @@ class SpawnInstance(object):
         """The extension client."""
         return self.connection.extension_manager_client()
 
+
 def parse_cli_params():
     """Parse CLI parameters passed to the extension executable"""
-    parser = argparse.ArgumentParser(description=(
-        "osquery python extension"
-    ))
+    parser = argparse.ArgumentParser(description=("osquery python extension"))
     parser.add_argument(
         "--socket",
         type=str,
@@ -141,6 +160,7 @@ def parse_cli_params():
         help="Enable verbose informational messages")
     return parser.parse_args()
 
+
 def start_watcher(client, interval):
     """Ping the osquery extension manager to detect dirty shutdowns."""
     try:
@@ -154,7 +174,10 @@ def start_watcher(client, interval):
         pass
     os._exit(0)
 
-def start_extension(name="<unknown>", version="0.0.0", sdk_version="1.8.0",
+
+def start_extension(name="<unknown>",
+                    version="0.0.0",
+                    sdk_version="1.8.0",
                     min_sdk_version="1.8.0"):
     """Start your extension by communicating with osquery core and starting
     a thrift server.
@@ -171,7 +194,14 @@ def start_extension(name="<unknown>", version="0.0.0", sdk_version="1.8.0",
     logging.getLogger('thrift').addHandler(logging.NullHandler())
 
     client = ExtensionClient(path=args.socket)
+
     if not client.open(args.timeout):
+        if args.verbose:
+            message = "Could not open socket %s" % args.socket
+            raise ExtensionException(
+                code=1,
+                message=message,
+            )
         return
     ext_manager = ExtensionManager()
 
@@ -208,12 +238,19 @@ def start_extension(name="<unknown>", version="0.0.0", sdk_version="1.8.0",
     # by the osquery core extension manager
     ext_manager.uuid = status.uuid
     processor = Processor(ext_manager)
-    transport = transport = TSocket.TServerSocket(
-        unix_socket=args.socket + "." + str(status.uuid))
+
+    transport = None
+    if sys.platform == 'win32':
+        transport = TPipeServer(pipe_name="{}.{}".format(args.socket, status.uuid))
+    else:
+        transport = TSocket.TServerSocket(
+            unix_socket=args.socket + "." + str(status.uuid))
+
     tfactory = TTransport.TBufferedTransportFactory()
     pfactory = TBinaryProtocol.TBinaryProtocolFactory()
     server = TServer.TSimpleServer(processor, transport, tfactory, pfactory)
     server.serve()
+
 
 def deregister_extension():
     """Deregister the entire extension from the core extension manager"""
@@ -239,7 +276,11 @@ def deregister_extension():
         )
 
     if status.code is not 0:
-        raise ExtensionException(code=1, message=status.message,)
+        raise ExtensionException(
+            code=1,
+            message=status.message,
+        )
+
 
 def register_plugin(plugin):
     """Decorator wrapper used for registering a plugin class
