@@ -32,7 +32,7 @@ class TPipeBase(TTransportBase):
         in the same way
         """
         if self._handle is not None:
-            win32pipe.DisconnectNamedPipe(self._handle)
+            win32file.CloseHandle(self._handle)
             self._handle = None
 
 
@@ -67,13 +67,10 @@ class TPipe(TPipeBase):
         while conns < self._max_conn_attempts:
             try:
                 h = win32file.CreateFile(
-                        self._pipe_name,
-                        win32file.GENERIC_READ | win32file.GENERIC_WRITE,
-                        0,
-                        None,
-                        win32file.OPEN_EXISTING,
-                        win32file.FILE_FLAG_OVERLAPPED,
-                        None)
+                    self._pipe_name,
+                    win32file.GENERIC_READ | win32file.GENERIC_WRITE, 0, None,
+                    win32file.OPEN_EXISTING, win32file.FILE_FLAG_OVERLAPPED,
+                    None)
             except pywintypes.error as e:
                 if e.winerror != winerror.ERROR_PIPE_BUSY:
                     raise TTransportException(
@@ -198,8 +195,8 @@ class TPipeServer(TPipeBase, TServerTransportBase):
 
         self._handle = win32pipe.CreateNamedPipe(
             self._pipe_name, openMode, pipeMode,
-            win32pipe.PIPE_UNLIMITED_INSTANCES, self._buff_size, self._buff_size,
-            win32pipe.NMPWAIT_WAIT_FOREVER, saAttr)
+            win32pipe.PIPE_UNLIMITED_INSTANCES, self._buff_size,
+            self._buff_size, win32pipe.NMPWAIT_WAIT_FOREVER, saAttr)
 
         err = win32api.GetLastError()
         if self._handle.handle == winerror.ERROR_INVALID_HANDLE:
@@ -223,3 +220,13 @@ class TPipeServer(TPipeBase, TServerTransportBase):
             if ret == winerror.ERROR_PIPE_CONNECTED:
                 win32event.SetEvent(self._overlapped.hEvent)
                 break
+
+    def close(self):
+        """
+        The server must ensure to disconnect so that subsequent reconnect
+        attempts are successful
+        """
+        if self._handle is not None:
+            win32pipe.DisconnectNamedPipe(self._handle)
+            win32file.CloseHandle(self._handle)
+            self._handle = None
