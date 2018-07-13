@@ -4,7 +4,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 
 __title__ = "osquery"
-__version__ = "3.0.4"
+__version__ = "3.0.5"
 __author__ = "osquery developers"
 __license__ = "BSD"
 __copyright__ = "Copyright 2015 Facebook"
