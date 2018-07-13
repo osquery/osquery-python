@@ -19,6 +19,15 @@ import tempfile
 import threading
 import time
 
+# logging support for Python 2.6
+try:
+    from logging import NullHandler
+except ImportError:
+    class NullHandler(logging.Handler):
+        def emit(self, record):
+            pass
+    logging.NullHandler = NullHandler
+
 from thrift.protocol import TBinaryProtocol
 from thrift.server import TServer
 from thrift.transport import TSocket
