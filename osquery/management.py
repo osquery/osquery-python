@@ -71,7 +71,6 @@ class SpawnInstance(object):
                 self.path = LINUX_BINARY_PATH
         else:
             self.path = path
-        self._socket = tempfile.mkstemp(prefix="pyosqsock")
 
         # Disable logging for the thrift module (can be loud).
         logging.getLogger('thrift').addHandler(logging.NullHandler())
@@ -88,9 +87,16 @@ class SpawnInstance(object):
     def __del__(self):
         if self.connection is not None:
             self.connection.close()
+            self.connection = None
         if self.instance is not None:
             self.instance.kill()
             self.instance.wait()
+            self.instance = None
+
+        # On macOS and Linux mkstemp opens a descriptor.
+        if self._socket is not None and self._socket[0] is not None:
+            os.close(self._socket[0])
+            self._socket = None
 
     def open(self, timeout=2, interval=0.01):
         """
