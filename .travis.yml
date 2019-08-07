@@ -11,6 +11,9 @@ python:
   - pypy3
 install:
   - pip install -r requirements.txt
+  - pip install twine readme_renderer
 script:
   - python setup.py build
   - python setup.py test
+  - python setup.py sdist
+  - twine check dist/*
