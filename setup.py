@@ -94,7 +94,7 @@ setup(name=TITLE,
       ],
       extras_require={
           ':sys_platform == "win32"': ['pywin32'],
-      }
+      },
       test_suite="tests",
       cmdclass={
           "generate": GenerateThriftCommand,
