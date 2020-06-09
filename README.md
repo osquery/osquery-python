@@ -121,7 +121,7 @@ if __name__ == "__main__":
     # For an installed and running system osqueryd, this is:
     #   Linux and macOS: /var/osquery/osquery.em
     #   FreeBSD: /var/run/osquery.em
-    #   Windows: \\.pipe\osquery.em
+    #   Windows: \\.\pipe\osquery.em
     instance = osquery.ExtensionClient('/home/you/.osquery/osqueryd.sock')
     instance.open()  # This may raise an exception
 
