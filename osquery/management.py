@@ -98,6 +98,14 @@ class SpawnInstance(object):
         # On macOS and Linux mkstemp opens a descriptor.
         if self._socket is not None and self._socket[0] is not None:
             os.close(self._socket[0])
+
+            # Remove the dangling temporary file from mkstemp if it still exists
+            if os.path.exists(self._socket[1]):
+                try:
+                    os.unlink(self._socket[1])
+                except OSError:
+                    logging.warning("Failed to remove socket descriptor: %s", self._socket[1])
+
             self._socket = None
 
     def open(self, timeout=2, interval=0.01):
