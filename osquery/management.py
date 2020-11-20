@@ -104,7 +104,7 @@ class SpawnInstance(object):
                 try:
                     os.unlink(self._socket[1])
                 except OSError:
-                    logging.warning("Failed to remove socket descriptor - %s", self._socket[1])
+                    logging.warning("Failed to remove socket descriptor: %s", self._socket[1])
 
             self._socket = None
 
