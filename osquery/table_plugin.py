@@ -39,7 +39,7 @@ class TablePlugin(with_metaclass(ABCMeta, BasePlugin)):
         if context["action"] == "generate":
             ctx = {}
             if "context" in context:
-                ctx = json.dumps(context["context"])
+                ctx = json.loads(context["context"])
             rows = self.generate(ctx)
             for i, row in enumerate(rows):
                 for key, value in row.items():
