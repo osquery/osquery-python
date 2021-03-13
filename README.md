@@ -106,8 +106,8 @@ if __name__ == "__main__":
     instance.open()  # This may raise an exception
 
     # Issues queries and call osquery Thrift APIs.
-    response = instance.client.query("select * from hosts").response
-    pprint.pprint(response)
+    result = instance.client.query("select * from hosts")
+    pprint.pprint(result.response)
 ```
 
 ### Connect to an existing socket
