@@ -91,7 +91,14 @@ Extensions are the core way that you can extend and customize osquery. At Facebo
 The same Thrift bindings can be used to create a Python client for the `osqueryd` or `osqueryi`'s extension socket. There are helper classes provided that spawn an ephemeral osquery process for consecutive or long running client instances.
 
 ```python
+#!/usr/bin/env python3
+
 import osquery
+import pprint
+import osquery.management as management
+
+# Override default location: /usr/bin/osqueryd
+management.LINUX_BINARY_PATH = "/usr/local/bin/osqueryd"
 
 if __name__ == "__main__":
     # Spawn an osquery process using an ephemeral extension socket.
@@ -99,7 +106,7 @@ if __name__ == "__main__":
     instance.open()  # This may raise an exception
 
     # Issues queries and call osquery Thrift APIs.
-    instance.client.query("select timestamp from time")
+    pprint.pprint(instance.client.query("select * from hosts").response)
 ```
 
 ### Connect to an existing socket
