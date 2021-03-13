@@ -191,7 +191,7 @@ def start_watcher(client, interval):
     try:
         while True:
             status = client.extension_manager_client().ping()
-            if status.code is not 0:
+            if status.code != 0:
                 break
             time.sleep(interval)
     except socket.error:
@@ -248,7 +248,7 @@ def start_extension(name="<unknown>",
             message=message,
         )
 
-    if status.code is not 0:
+    if status.code != 0:
         raise ExtensionException(
             code=1,
             message=status.message,
@@ -300,7 +300,7 @@ def deregister_extension():
             message=message,
         )
 
-    if status.code is not 0:
+    if status.code != 0:
         raise ExtensionException(
             code=1,
             message=status.message,
