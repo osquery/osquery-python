@@ -98,7 +98,7 @@ import pprint
 import osquery.management as management
 
 # Override default location: /usr/bin/osqueryd
-management.LINUX_BINARY_PATH = "/usr/local/bin/osqueryd"
+# management.LINUX_BINARY_PATH = "/usr/local/bin/osqueryd"
 
 if __name__ == "__main__":
     # Spawn an osquery process using an ephemeral extension socket.
@@ -106,7 +106,8 @@ if __name__ == "__main__":
     instance.open()  # This may raise an exception
 
     # Issues queries and call osquery Thrift APIs.
-    pprint.pprint(instance.client.query("select * from hosts").response)
+    response = instance.client.query("select * from hosts").response
+    pprint.pprint(response)
 ```
 
 ### Connect to an existing socket
