@@ -191,13 +191,22 @@ def start_watcher(client, interval):
     try:
         while True:
             status = client.extension_manager_client().ping()
-            if status.code is not 0:
+            if status.code != 0:
+                logging.error("Ping received nonzero status: %d", status)
                 break
             time.sleep(interval)
-    except socket.error:
-        # The socket was torn down.
-        pass
-    os._exit(0)
+
+    except socket.error as e:
+        logging.error("Ping received socket.error: %s", e)
+
+    except TTransport.TTransportException as e:
+        logging.error("Ping received thrift.transport.TTransport.TTransportException: %s", e)
+
+    except Exception as e:
+        logging.error("Ping received unknown exception: %s", e)
+
+    finally:
+        os._exit(1)
 
 
 def start_extension(name="<unknown>",
@@ -248,7 +257,7 @@ def start_extension(name="<unknown>",
             message=message,
         )
 
-    if status.code is not 0:
+    if status.code != 0:
         raise ExtensionException(
             code=1,
             message=status.message,
@@ -300,7 +309,7 @@ def deregister_extension():
             message=message,
         )
 
-    if status.code is not 0:
+    if status.code != 0:
         raise ExtensionException(
             code=1,
             message=status.message,
