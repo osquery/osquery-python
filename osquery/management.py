@@ -211,7 +211,7 @@ def start_watcher(client, interval):
 
 def start_extension(name="<unknown>",
                     version="0.0.0",
-                    sdk_version="1.8.0",
+                    sdk_version="3.0.7",
                     min_sdk_version="1.8.0"):
     """Start your extension by communicating with osquery core and starting
     a thrift server.
