@@ -4,10 +4,10 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 
 __title__ = "osquery"
-__version__ = "3.0.6"
-__author__ = "osquery developers"
+__version__ = "3.0.7"
+__author__ = "osquery authors"
 __license__ = "BSD"
-__copyright__ = "Copyright 2015 Facebook"
+__copyright__ = "Copyright 2015-present, The osquery authors"
 __url__ = "https://osquery.io"
 
 __all__ = [
