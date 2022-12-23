@@ -228,4 +228,4 @@ class TPipeServer(TPipeBase, TServerTransportBase):
         """
         if self._handle is not None:
             win32pipe.DisconnectNamedPipe(self._handle)
-            super(TPipeBase).close()
+            super(TPipe, self).close()
