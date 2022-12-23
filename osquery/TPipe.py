@@ -32,7 +32,7 @@ class TPipeBase(TTransportBase):
         in the same way
         """
         if self._handle is not None:
-            win32pipe.DisconnectNamedPipe(self._handle)
+            win32file.CloseHandle(self._handle)
             self._handle = None
 
 
@@ -227,6 +227,5 @@ class TPipeServer(TPipeBase, TServerTransportBase):
         attempts are successful
         """
         if self._handle is not None:
-            super(TPipe, self).close()
-            win32file.CloseHandle(self._handle)
-            self._handle = None
+            win32pipe.DisconnectNamedPipe(self._handle)
+            super(TPipeBase).close()
