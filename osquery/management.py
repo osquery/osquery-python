@@ -42,10 +42,12 @@ if sys.platform == WINDOWS_PLATFORM:
     # We bootleg our own version of Windows pipe coms
     from osquery.TPipe import TPipe
     from osquery.TPipe import TPipeServer
-    if os.path.exists(os.environ["PROGRAMDATA"] + "\\osquery\\osqueryd\\osqueryd.exe"):
-        WINDOWS_BINARY_PATH = os.environ["PROGRAMDATA"] + "\\osquery\\osqueryd\\osqueryd.exe"
-    if os.path.exists(os.environ["PROGRAMW6432"] + "\\osquery\\osqueryd\\osqueryd.exe"):
-        WINDOWS_BINARY_PATH = os.environ["PROGRAMW6432"] + "\\osquery\\osqueryd\\osqueryd.exe"
+    PTH = os.path.join(os.environ["PROGRAMDATA"], "osquery", "osqueryd", "osqueryd.exe")
+    if os.path.exists(PTH):
+        WINDOWS_BINARY_PATH = PTH
+    PTH = os.path.join(os.environ["PROGRAMW6432"], "osquery", "osqueryd", "osqueryd.exe")
+    if os.path.exists(PTH):
+        WINDOWS_BINARY_PATH = PTH
 
 DARWIN_BINARY_PATH = "/usr/local/bin/osqueryd"
 LINUX_BINARY_PATH = "/usr/bin/osqueryd"
