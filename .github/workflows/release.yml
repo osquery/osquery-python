@@ -1,0 +1,33 @@
+name: Upload Python Package to PyPI when a Release is Created
+
+on:
+    workflow_dispatch:
+    release:
+        types: [created]
+
+jobs:
+    build_and_test:
+        runs-on: ${{ matrix.os }}
+        strategy:
+          fail-fast: false
+          matrix:
+            os:
+              - ubuntu-20.04
+              - macos-12
+              - windows-latest
+        steps:
+            - uses: actions/checkout@v4
+            - name: Set up Python
+              uses: actions/setup-python@v4
+              with:
+                  python-version: "3.x"
+            - name: Install dependencies
+              run: |
+                python -m pip install --upgrade pip
+                pip install setuptools wheel
+            - name: build
+              run: |
+                python -m build
+            - name: package
+              run: |
+                python setup.py sdist bdist_wheel
