@@ -150,6 +150,13 @@ python setup.py install
 
 See [CONTRIBUTING.md](https://github.com/osquery/osquery-python/blob/master/CONTRIBUTING.md) and the [osquery wiki](https://osquery.readthedocs.org) for development information.
 
+### How To Release
+
+1. Pick a version number
+2. Update `osquery/__init__.py` to match
+3. Use the GitHub release
+4. Make sure the GitHub Action ran
+
 ### Vulnerabilities
 
 Facebook has a [bug bounty](https://www.facebook.com/whitehat/) program that includes osquery. If you find a security vulnerability in osquery, please submit it via the process outlined on that page and do not file a public issue. For more information on finding vulnerabilities in osquery, see a recent blog post about [bug-hunting osquery](https://www.facebook.com/notes/facebook-bug-bounty/bug-hunting-osquery/954850014529225).
